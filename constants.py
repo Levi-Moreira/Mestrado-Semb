@@ -5,7 +5,7 @@ NEGATIVE_FOLDER_NAME = "negative"
 PATIENT_CODE = "chb01"
 POSITIVE_PATH = os.path.join(os.getcwd(), *["data", PATIENT_CODE, POSITIVE_FOLDER_NAME])
 NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", PATIENT_CODE, NEGATIVE_FOLDER_NAME])
-
+EEG_SIGNAL_NUMBER = 23
 TRAIN_SPLIT = 0.7
 
 CHANNELS = 13
