@@ -6,7 +6,7 @@ from keras.utils import Sequence
 from sklearn import preprocessing
 
 from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, POSITIVE_PATH, NEGATIVE_PATH, TRAIN_SPLIT, \
-    WINDOW_SIZE, CHANNELS, BATCH_SIZE, CLASSES
+    WINDOW_SIZE, CHANNELS, BATCH_SIZE, CLASSES, PATIENT_CODE
 from edf_interfacer import NegativeEEGDatasetGenerator, PositiveEEGDatasetGenerator
 
 
@@ -88,11 +88,11 @@ class DataGenerator(Sequence):
 
 class DataProducer:
     def data_file_creation(self):
-        negative_dataset_generator = NegativeEEGDatasetGenerator("chb15")
+        negative_dataset_generator = NegativeEEGDatasetGenerator(PATIENT_CODE)
         negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
         print(len(negative_dataset_generator.chunks))
 
-        positive_dataset_generator = PositiveEEGDatasetGenerator("chb15")
+        positive_dataset_generator = PositiveEEGDatasetGenerator(PATIENT_CODE)
         positive_dataset_generator.save_chunks(POSITIVE_FOLDER_NAME)
         print(len(positive_dataset_generator.chunks))
 

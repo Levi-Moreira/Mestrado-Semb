@@ -2,16 +2,16 @@ import os
 
 POSITIVE_FOLDER_NAME = "positive"
 NEGATIVE_FOLDER_NAME = "negative"
-POSITIVE_PATH = os.path.join(os.getcwd(), *["data", "chb15", POSITIVE_FOLDER_NAME])
-NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", "chb15", NEGATIVE_FOLDER_NAME])
+PATIENT_CODE = "chb01"
+POSITIVE_PATH = os.path.join(os.getcwd(), *["data", PATIENT_CODE, POSITIVE_FOLDER_NAME])
+NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", PATIENT_CODE, NEGATIVE_FOLDER_NAME])
 
 TRAIN_SPLIT = 0.7
 
-CHANNELS = 31
+CHANNELS = 13
 OLD_SAMPLE_RATE = 256
 NEW_SAMPLE_RATE = 200
 WINDOW_IN_SECONDS = 5
 WINDOW_SIZE = NEW_SAMPLE_RATE * WINDOW_IN_SECONDS
-
 BATCH_SIZE = 128
 CLASSES = 2

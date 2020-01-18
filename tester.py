@@ -1,5 +1,3 @@
-import numpy as np
-
 from data_generator import DataProducer
 from forward_pass import forward_pass
 from models.seizenet import SeizeNet
@@ -67,7 +65,7 @@ class EvaluatorPy:
         self.confusion_matrix = confusion_matrix
 
     def save_stats(self):
-        np.savetxt("py_stats_for_{}.txt".format(self.file_per_channels[self.channels]), self.confusion_matrix,
+        np.savetxt("py2_stats_for_{}.txt".format(self.file_per_channels[self.channels]), self.confusion_matrix,
                    delimiter=",")
 
 
@@ -101,6 +99,48 @@ class ModelWeightsExtractor:
 
 # extractor = ModelWeightsExtractor("best_model_38.h5")
 # extractor.export_weights()
-evaluator = EvaluatorPy(31)
-evaluator.get_confusion_matrix()
-evaluator.save_stats()
+# evaluator = EvaluatorPy(31)
+# evaluator.get_confusion_matrix()
+# evaluator.save_stats()
+# file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
+import numpy as np
+
+#
+channels = 18
+data_generator = DataProducer()
+file_list = data_generator.get_test_files()
+index = 0
+for file in file_list:
+    file_name = file.split("/")[-1]
+    input = data_generator.load_data_with_channels(file, channels)
+    if "positive" in file_name:
+        file_name = file_name.replace("positive", "p")
+
+    if "negative" in file_name:
+        file_name = file_name.replace("negative", "n")
+    file_name = file_name.replace(".txt", "")
+    data = list(input.flatten())
+
+    import struct
+
+    s = struct.pack('f' * len(data), *data)
+    f = open('/Users/levialbuquerque/PycharmProjects/semb/test_files_18/{}'.format(file_name), 'wb')
+    f.write(s)
+    f.close()
+
+    # first_half = data[:int(len(data)/2)]
+    # second_half = data[int(len(data)/2):]
+    #
+    # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.1".format(file_name), first_half,
+    #            fmt='%.3f')
+    # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.2".format(file_name), second_half,
+    #            fmt='%.3f')
+    print("Saving: {} of {}".format(index, len(file_list)))
+    index += 1
+# forward_pass(file, 18)
+
+# import tensorflow as tf
+#
+# converter = tf.lite.TFLiteConverter.from_keras_model_file('best_model_38.h5')
+# tfmodel = converter.convert()
+# open("model38.tflite", "wb").write(tfmodel)

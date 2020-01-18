@@ -58,7 +58,8 @@ def convolution_forward(A_prev, W, b, stride, padding):
                     horiz_start = w * stride
                     horiz_end = horiz_start + f_w
                     a_slice_prev = a_prev_pad[vert_start:vert_end, horiz_start:horiz_end, :]
-                    Z[i, h, w, c] = conv_single_step(a_slice_prev, W[:, :, :, c], b[:, :, :, c])
+                    conv_result = conv_single_step(a_slice_prev, W[:, :, :, c], b[:, :, :, c])
+                    Z[i, h, w, c] = conv_result
 
     assert (Z.shape == (m, n_H, n_W, n_C))
 

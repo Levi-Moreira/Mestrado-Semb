@@ -1,3 +1,5 @@
+import time
+
 from data_generator import DataProducer
 from forward_pass_data import get_weights, get_bias, get_gamma, get_beta, get_mean, get_variance
 from forward_pass_layers import convolution_forward, relu_forward, pool_forward, pure_batch_norm, fc_forward, sigmoid
@@ -9,11 +11,15 @@ def forward_pass(file, channels):
     X = X.reshape(1, X.shape[0], X.shape[1], X.shape[2])
 
     # CONV1
+
+
+
     W1 = get_weights(0, (1, 10, channels, 8), channels)
     b1 = get_bias(0, (1, 1, 1, 8), channels)
     out_conv_1 = convolution_forward(X, W1, b1, stride=1, padding=0)
     out_conv_1 = relu_forward(out_conv_1)
     X2 = pool_forward(out_conv_1, 1, 2, 1, 2)
+
 
     # CONV2
     W2 = get_weights(1, (1, 10, 8, 16), channels)
@@ -27,6 +33,7 @@ def forward_pass(file, channels):
     out_conv_2 = pure_batch_norm(out_conv_2, gamma1, beta1, mean1, variance1, 0.001)
     X3 = pool_forward(out_conv_2, 1, 2, 1, 2)
 
+
     # CONV3
     W3 = get_weights(2, (1, 10, 16, 32), channels)
     b3 = get_bias(2, (1, 1, 1, 32), channels)
@@ -38,6 +45,7 @@ def forward_pass(file, channels):
     variance2 = get_variance(1, (32,), channels)
     out_conv_3 = pure_batch_norm(out_conv_3, gamma2, beta2, mean2, variance2, 0.001)
     X4 = pool_forward(out_conv_3, 1, 2, 1, 2)
+
 
     # CONV4
     W4 = get_weights(3, (1, 10, 32, 64), channels)
@@ -53,6 +61,7 @@ def forward_pass(file, channels):
 
     X5 = X5.ravel().reshape(X.shape[0], -1)
 
+
     # FC1
     W5 = get_weights(4, (3456, 50), channels)
     b5 = get_bias(4, (50,), channels)
@@ -63,6 +72,7 @@ def forward_pass(file, channels):
     mean4 = get_mean(3, (50,), channels)
     variance4 = get_variance(3, (50,), channels)
     out_fc_1 = pure_batch_norm(out_fc_1, gamma4, beta4, mean4, variance4, 0.001)
+    start = time.clock()
 
     # FC2
     X6 = out_fc_1
@@ -70,6 +80,5 @@ def forward_pass(file, channels):
     b6 = get_bias(5, (1,), channels)
     out_fc_2 = fc_forward(X6, W6, b6)
     out_fc_2 = sigmoid(out_fc_2)
-    Y = 1 if out_fc_2 > 0.57 else 0
-
+    Y = 1 if out_fc_2 > 0.5 else 0
     return Y
