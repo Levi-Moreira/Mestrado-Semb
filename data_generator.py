@@ -6,21 +6,22 @@ from keras.utils import Sequence
 from sklearn import preprocessing
 
 from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, POSITIVE_PATH, NEGATIVE_PATH, TRAIN_SPLIT, \
-    WINDOW_SIZE, CHANNELS, BATCH_SIZE, CLASSES, PATIENT_CODE
+    WINDOW_SIZE, BATCH_SIZE, CLASSES, PATIENT_CODE
 from edf_interfacer import NegativeEEGDatasetGenerator, PositiveEEGDatasetGenerator
 
 
 class DataGenerator(Sequence):
     'Generates data for Keras'
 
-    def __init__(self, paths,
-                 to_fit=True, batch_size=BATCH_SIZE, dim=(1, WINDOW_SIZE, CHANNELS),
+    def __init__(self, paths, channels,
+                 to_fit=True, batch_size=BATCH_SIZE, dim=None,
                  n_channels=1, n_classes=CLASSES, shuffle=True):
         'Initialization'
+        self.channels = channels
         self.paths = paths
         self.to_fit = to_fit
         self.batch_size = batch_size
-        self.dim = dim
+        self.dim = (1, WINDOW_SIZE, self.channels)
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -66,7 +67,7 @@ class DataGenerator(Sequence):
 
     def _load_data(self, path):
         data = np.loadtxt(path, delimiter=",")
-        data = data[:CHANNELS, :WINDOW_SIZE]
+        data = data[:self.channels, :WINDOW_SIZE]
         data = preprocessing.scale(data)
         min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
         data = min_max_scaler.fit_transform(data)
@@ -87,7 +88,8 @@ class DataGenerator(Sequence):
 
 
 class DataProducer:
-    def data_file_creation(self):
+    def data_file_creation(self, channels):
+        self.channels = channels
         negative_dataset_generator = NegativeEEGDatasetGenerator(PATIENT_CODE)
         negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
         print(len(negative_dataset_generator.chunks))

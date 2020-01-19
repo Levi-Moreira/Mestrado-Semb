@@ -4,19 +4,24 @@ from keras.engine.saving import load_model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization
 from keras.optimizers import Adam
 
-from constants import CHANNELS, WINDOW_SIZE
+from constants import WINDOW_SIZE
 
 
 class SeizeNet:
-    def __init__(self):
+    def __init__(self, channels):
         self.model = None
-        self.mc = ModelCheckpoint('best_model_2_2.h5', monitor='val_loss', mode='min', save_best_only=True)
+        self.channels = channels
+        self.mc = ModelCheckpoint('best_model_{}.h5'.format(self.channels), monitor='val_loss', mode='min',
+                                  save_best_only=True)
         self.build_model()
+
+        print("STARTING CREATING MODEL:")
+        print('best_model_{}.h5'.format(self.channels))
 
     def build_model(self):
         self.model = Sequential()
         self.model.add(
-            Conv2D(8, (1, 10), activation='relu', input_shape=(1, WINDOW_SIZE, CHANNELS)))
+            Conv2D(8, (1, 10), activation='relu', input_shape=(1, WINDOW_SIZE, self.channels)))
         self.model.add(MaxPooling2D((1, 2)))
         self.model.add(Dropout(0.2))
 

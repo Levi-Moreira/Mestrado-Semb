@@ -1,18 +1,20 @@
+from shutil import copyfile
+
 from data_generator import DataProducer
 from forward_pass import forward_pass
 from models.seizenet import SeizeNet
 
-
+import numpy as np
 class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
-        18: "best_model_18.h5",
-        31: "best_model_38.h5"
+        13: "best_model_13.h5",
+        23: "best_model_23.h5"
     }
 
     def __init__(self, channels):
         self.channels = channels
-        self.seize_net = SeizeNet()
+        self.seize_net = SeizeNet(channels)
         self.seize_net.load_model(self.file_per_channels[channels])
         self.confusion_matrix = None
         self.data_producer = DataProducer()
@@ -23,7 +25,13 @@ class Evaluator:
     def get_confusion_matrix(self):
         confusion_matrix = np.zeros((2, 2))
         for index, path in enumerate(self.test_data_path):
-            data = self.data_producer.load_data_with_channels(path, self.channels)
+            filepath = path.split("/")[-1]
+            path = "/Users/levialbuquerque/PycharmProjects/semb/test/" + filepath
+
+            try:
+                data = self.data_producer.load_data_with_channels(path, self.channels)
+            except:
+                continue
             print("Loading data #{}".format(index + 1))
             class_label = self.seize_net.model.predict_classes(
                 data.reshape(1, data.shape[0], data.shape[1], data.shape[2]))
@@ -99,44 +107,44 @@ class ModelWeightsExtractor:
 
 # extractor = ModelWeightsExtractor("best_model_38.h5")
 # extractor.export_weights()
-# evaluator = EvaluatorPy(31)
-# evaluator.get_confusion_matrix()
-# evaluator.save_stats()
+evaluator = Evaluator(23)
+evaluator.get_confusion_matrix()
+evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
-import numpy as np
-
+# import numpy as np
 #
-channels = 18
-data_generator = DataProducer()
-file_list = data_generator.get_test_files()
-index = 0
-for file in file_list:
-    file_name = file.split("/")[-1]
-    input = data_generator.load_data_with_channels(file, channels)
-    if "positive" in file_name:
-        file_name = file_name.replace("positive", "p")
-
-    if "negative" in file_name:
-        file_name = file_name.replace("negative", "n")
-    file_name = file_name.replace(".txt", "")
-    data = list(input.flatten())
-
-    import struct
-
-    s = struct.pack('f' * len(data), *data)
-    f = open('/Users/levialbuquerque/PycharmProjects/semb/test_files_18/{}'.format(file_name), 'wb')
-    f.write(s)
-    f.close()
-
-    # first_half = data[:int(len(data)/2)]
-    # second_half = data[int(len(data)/2):]
-    #
-    # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.1".format(file_name), first_half,
-    #            fmt='%.3f')
-    # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.2".format(file_name), second_half,
-    #            fmt='%.3f')
-    print("Saving: {} of {}".format(index, len(file_list)))
-    index += 1
+# #
+# channels = 18
+# data_generator = DataProducer()
+# file_list = data_generator.get_test_files()
+# index = 0
+# for file in file_list:
+#     file_name = file.split("/")[-1]
+#     input = data_generator.load_data_with_channels(file, channels)
+#     if "positive" in file_name:
+#         file_name = file_name.replace("positive", "p")
+#
+#     if "negative" in file_name:
+#         file_name = file_name.replace("negative", "n")
+#     file_name = file_name.replace(".txt", "")
+#     data = list(input.flatten())
+#
+#     import struct
+#
+#     s = struct.pack('f' * len(data), *data)
+#     f = open('/Users/levialbuquerque/PycharmProjects/semb/test_files_18/{}'.format(file_name), 'wb')
+#     f.write(s)
+#     f.close()
+#
+#     # first_half = data[:int(len(data)/2)]
+#     # second_half = data[int(len(data)/2):]
+#     #
+#     # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.1".format(file_name), first_half,
+#     #            fmt='%.3f')
+#     # np.savetxt("/Users/levialbuquerque/PycharmProjects/semb/test_files_31/{}.2".format(file_name), second_half,
+#     #            fmt='%.3f')
+#     print("Saving: {} of {}".format(index, len(file_list)))
+#     index += 1
 # forward_pass(file, 18)
 
 # import tensorflow as tf
@@ -144,3 +152,13 @@ for file in file_list:
 # converter = tf.lite.TFLiteConverter.from_keras_model_file('best_model_38.h5')
 # tfmodel = converter.convert()
 # open("model38.tflite", "wb").write(tfmodel)
+
+# import os
+#
+# os.mkdir("test")
+# data_generator = DataProducer()
+# file_list = data_generator.get_test_files()
+#
+# for file in file_list:
+#     filename = file.split("/")[-1]
+#     copyfile(file, "test/" + filename)

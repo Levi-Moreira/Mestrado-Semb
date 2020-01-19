@@ -4,7 +4,9 @@ import numpy as np
 import pyedflib
 from scipy.signal import resample
 
-from constants import CHANNELS, OLD_SAMPLE_RATE, NEW_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER
+from constants import OLD_SAMPLE_RATE, NEW_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER
+
+CHANNELS = 2
 
 
 class EEGReader:
@@ -13,6 +15,7 @@ class EEGReader:
     CHANNEL_NUMBER = CHANNELS
 
     def read_file(self, file_path):
+        print("Reading file: {}".format(file_path))
         eeg_file = pyedflib.EdfReader(file_path)
         n = EEG_SIGNAL_NUMBER
         number_of_seconds = int(eeg_file.getNSamples()[0]) / self.ORIGINAL_SAMPLE_RATE
