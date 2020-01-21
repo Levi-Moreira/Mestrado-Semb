@@ -25,8 +25,8 @@ class Evaluator:
     def get_confusion_matrix(self):
         confusion_matrix = np.zeros((2, 2))
         for index, path in enumerate(self.test_data_path):
-            filepath = path.split("/")[-1]
-            path = "/Users/levialbuquerque/PycharmProjects/semb/test/" + filepath
+            # filepath = path.split("/")[-1]
+            # path = "/Users/levialbuquerque/PycharmProjects/semb/test/" + filepath
 
             try:
                 data = self.data_producer.load_data_with_channels(path, self.channels)
@@ -107,7 +107,7 @@ class ModelWeightsExtractor:
 
 # extractor = ModelWeightsExtractor("best_model_38.h5")
 # extractor.export_weights()
-evaluator = Evaluator(23)
+evaluator = Evaluator(2)
 evaluator.get_confusion_matrix()
 evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"

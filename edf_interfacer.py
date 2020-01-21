@@ -52,6 +52,7 @@ class BaseDatabaseGenerator:
         infos = {}
         for file_info in file:
             lines = file_info.split("\n")
+            lines = list(filter(None, lines))
             if 20 > len(lines) > 2:
                 info = {}
                 file_name = lines[self.FILE_NAME_POSITION].split(": ")[1]
@@ -61,12 +62,18 @@ class BaseDatabaseGenerator:
                 if seizures > 0:
                     info["seizure_info"] = []
                     for n in range(4, len(lines), 2):
-                        seizure_info = {}
-                        start_time = lines[n].split(":")[1]
-                        seizure_info["start_time"] = int(start_time.split(" ")[1])
-                        end_time = lines[n + 1].split(":")[1]
-                        seizure_info["end_time"] = int(end_time.split(" ")[1])
-                        info["seizure_info"].append(seizure_info)
+                        try:
+                            seizure_info = {}
+                            start_time = lines[n].split(":")[1]
+                            start_time = start_time.strip()
+                            seizure_info["start_time"] = int(start_time.split(" ")[0])
+                            end_time = lines[n + 1].split(":")[1]
+                            end_time = end_time.strip()
+                            seizure_info["end_time"] = int(end_time.split(" ")[0])
+                            info["seizure_info"].append(seizure_info)
+                        except Exception as ee:
+                            print(" Error found: {}".format(file_name))
+                            continue
                 infos[file_name] = info
         self.summary = infos
 

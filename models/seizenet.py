@@ -1,5 +1,5 @@
 from keras import Sequential
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.engine.saving import load_model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization
 from keras.optimizers import Adam
@@ -13,6 +13,7 @@ class SeizeNet:
         self.channels = channels
         self.mc = ModelCheckpoint('best_model_{}.h5'.format(self.channels), monitor='val_loss', mode='min',
                                   save_best_only=True)
+
         self.build_model()
 
         print("STARTING CREATING MODEL:")
@@ -58,7 +59,7 @@ class SeizeNet:
 
     def fit_data(self, train_generator, test_generator):
         self.history = self.model.fit_generator(generator=train_generator, epochs=10,
-                                                validation_data=test_generator, callbacks=[self.mc, ])
+                                                validation_data=test_generator, callbacks=[self.mc,])
 
     def load_model(self, file):
         self.model = load_model(file)
