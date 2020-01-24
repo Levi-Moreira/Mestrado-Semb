@@ -90,9 +90,9 @@ class DataGenerator(Sequence):
 class DataProducer:
     def data_file_creation(self, channels):
         self.channels = channels
-        negative_dataset_generator = NegativeEEGDatasetGenerator(PATIENT_CODE)
-        negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
-        print(len(negative_dataset_generator.chunks))
+        # negative_dataset_generator = NegativeEEGDatasetGenerator(PATIENT_CODE)
+        # negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
+        # print(len(negative_dataset_generator.chunks))
 
         positive_dataset_generator = PositiveEEGDatasetGenerator(PATIENT_CODE)
         positive_dataset_generator.save_chunks(POSITIVE_FOLDER_NAME)

@@ -107,7 +107,7 @@ class ModelWeightsExtractor:
 
 # extractor = ModelWeightsExtractor("best_model_38.h5")
 # extractor.export_weights()
-evaluator = Evaluator(2)
+evaluator = Evaluator(23)
 evaluator.get_confusion_matrix()
 evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
@@ -122,7 +122,7 @@ evaluator.save_stats()
 #     file_name = file.split("/")[-1]
 #     input = data_generator.load_data_with_channels(file, channels)
 #     if "positive" in file_name:
-#         file_name = file_name.replace("positive", "p")
+#         file_name = file_name.replace("positive", "p")0
 #
 #     if "negative" in file_name:
 #         file_name = file_name.replace("negative", "n")

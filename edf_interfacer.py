@@ -1,10 +1,12 @@
 import os
+from datetime import datetime
+from random import randint
 
 import numpy as np
 import pyedflib
 from scipy.signal import resample
 
-from constants import OLD_SAMPLE_RATE, NEW_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER
+from constants import OLD_SAMPLE_RATE, NEW_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER, PATIENT_CODE
 
 CHANNELS = 2
 
@@ -24,7 +26,8 @@ class EEGReader:
         for i in np.arange(n):
             original_signal = eeg_file.readSignal(i)
             # resample to 200hz
-            result[i, :] = resample(original_signal, intended_number_of_samples)
+            if not original_signal.size == 0:
+                result[i, :] = resample(original_signal, intended_number_of_samples)
         return result
 
     def read_file_in_interval(self, file_path, start, end):
@@ -57,7 +60,11 @@ class BaseDatabaseGenerator:
                 info = {}
                 file_name = lines[self.FILE_NAME_POSITION].split(": ")[1]
                 info["file_name"] = file_name
-                seizures = int(lines[self.NUMBER_OF_SEIZURE_POSITION].split(": ")[1])
+                if "Seizures in File" in lines[self.NUMBER_OF_SEIZURE_POSITION]:
+                    seizures=lines[self.NUMBER_OF_SEIZURE_POSITION].split(": ")[1]
+                if "Seizures in File" in lines[1]:
+                    seizures = lines[1].split(": ")[1]
+                seizures = int(seizures)
                 info["number_of_seizures"] = seizures
                 if seizures > 0:
                     info["seizure_info"] = []
@@ -78,15 +85,17 @@ class BaseDatabaseGenerator:
         self.summary = infos
 
     def save_chunks(self, folder_name):
-        file_path = os.path.join(os.getcwd(), *["data", self.subject, folder_name])
+        file_path = os.path.join(os.getcwd(), *["data", "all", folder_name])
         for index, chunck in enumerate(self.chunks):
-            np.savetxt(os.path.join(file_path, "{}_{}.txt".format(folder_name, index)), chunck, delimiter=",")
+            np.savetxt(os.path.join(file_path, "{}_{}_{}.txt".format(folder_name, index,PATIENT_CODE)), chunck, delimiter=",")
 
 
 class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
     def __init__(self, subject):
         super().__init__(subject)
-        self.negative_files = self.explorer.negative_edf_files
+        negative_files = self.explorer.negative_edf_files
+        # len_negaive=len(negative_files)
+        self.negative_files = negative_files
         self.__generate_data_chuncks(subject)
 
     def __generate_data_chuncks(self, subject):
