@@ -1,10 +1,10 @@
-from shutil import copyfile
+import numpy as np
 
 from data_generator import DataProducer
 from forward_pass import forward_pass
 from models.seizenet import SeizeNet
 
-import numpy as np
+
 class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
@@ -79,9 +79,10 @@ class EvaluatorPy:
 
 class ModelWeightsExtractor:
 
-    def __init__(self, model_file):
+    def __init__(self, model_file, channels):
+        import tensorflow as tf
         self.model_file_name = model_file
-        self.seize_net = SeizeNet()
+        self.seize_net = SeizeNet(channels)
         self.seize_net.load_model(model_file)
 
     def export_weights(self):
@@ -94,8 +95,8 @@ class ModelWeightsExtractor:
 
             if "batch" in layer.name:
                 layer_name = layer.name
-                gamma, beta = layer.gamma.numpy(), layer.beta.numpy()
-                mean, variance = layer.moving_mean.numpy(), layer.moving_variance.numpy()
+                gamma, beta, mean, variance = layer.get_weights()
+                # mean, variance = layer.moving_mean.numpy(), layer.moving_variance.numpy()
                 self.save_file("{}_{}_beta.npy".format(self.model_file_name, layer_name), beta.flatten())
                 self.save_file("{}_{}_gamma.npy".format(self.model_file_name, layer_name), gamma.flatten())
                 self.save_file("{}_{}_mean.npy".format(self.model_file_name, layer_name), mean.flatten())
@@ -105,11 +106,11 @@ class ModelWeightsExtractor:
         np.savetxt(name, data)
 
 
-# extractor = ModelWeightsExtractor("best_model_38.h5")
-# extractor.export_weights()
-evaluator = Evaluator(23)
-evaluator.get_confusion_matrix()
-evaluator.save_stats()
+extractor = ModelWeightsExtractor("/Volumes/ELEMENTS/Mestrado/CNN/BALANCED_DATA/CHB15/best_model_2.h5", 2)
+extractor.export_weights()
+# evaluator = Evaluator(23)
+# evaluator.get_confusion_matrix()
+# evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
 # import numpy as np
 #
