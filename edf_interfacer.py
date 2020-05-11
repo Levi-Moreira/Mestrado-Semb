@@ -11,7 +11,7 @@ CHANNELS = 2
 
 class EEGReader:
     ORIGINAL_SAMPLE_RATE = OLD_SAMPLE_RATE
-    FINAL_SAMPLE_RATE = NEW_SAMPLE_RATE
+
     CHANNEL_NUMBER = CHANNELS
 
     def read_file(self, file_path):
@@ -19,12 +19,11 @@ class EEGReader:
         eeg_file = pyedflib.EdfReader(file_path)
         n = EEG_SIGNAL_NUMBER
         number_of_seconds = int(eeg_file.getNSamples()[0]) / self.ORIGINAL_SAMPLE_RATE
-        intended_number_of_samples = int(number_of_seconds * self.FINAL_SAMPLE_RATE)
+        intended_number_of_samples = int(number_of_seconds * self.ORIGINAL_SAMPLE_RATE)
         result = np.zeros((n, intended_number_of_samples), dtype=np.float16)
         for i in np.arange(n):
             original_signal = eeg_file.readSignal(i)
-            # resample to 200hz
-            result[i, :] = resample(original_signal, intended_number_of_samples)
+            result[i, :] = original_signal
         return result
 
     def read_file_in_interval(self, file_path, start, end):
@@ -73,7 +72,7 @@ class BaseDatabaseGenerator:
     def save_chunks(self, folder_name):
         file_path = os.path.join(os.getcwd(), *["data", self.subject, folder_name])
         for index, chunck in enumerate(self.chunks):
-            np.savetxt(os.path.join(file_path, "{}_{}.txt".format(folder_name, index)), chunck, delimiter=",")
+            np.save(os.path.join(file_path, "{}_{}".format(folder_name, index)), chunck)
 
 
 class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
@@ -85,7 +84,10 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
     def __generate_data_chuncks(self, subject):
         for file in self.negative_files:
             file_path = os.path.join(os.getcwd(), *["data", subject, file])
-            data = self.reader.read_file(file_path)
+            try:
+                data = self.reader.read_file(file_path)
+            except OSError:
+                continue
             self.chunks.extend(np.array_split(data, int(data.shape[1] / self.CHUNCK_SIZE), axis=1))
 
 
@@ -100,9 +102,12 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
             file_path = os.path.join(os.getcwd(), *["data", subject, file])
             if self.summary[file]["seizure_info"]:
                 for info in self.summary[file]["seizure_info"]:
-                    start_sample = info["start_time"] * self.reader.FINAL_SAMPLE_RATE
-                    end_sample = info["end_time"] * self.reader.FINAL_SAMPLE_RATE
-                    data = self.reader.read_file_in_interval(file_path, start_sample, end_sample)
+                    start_sample = info["start_time"] * self.reader.ORIGINAL_SAMPLE_RATE
+                    end_sample = info["end_time"] * self.reader.ORIGINAL_SAMPLE_RATE
+                    try:
+                        data = self.reader.read_file_in_interval(file_path, start_sample, end_sample)
+                    except OSError:
+                        continue
                     cc = self.__get_positive_chunks_from_data(data)
                     self.chunks.extend(cc)
 
@@ -111,7 +116,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
         window_start = 0
         while (window_start + self.CHUNCK_SIZE) < data.shape[1]:
             chuncks.append(data[:, window_start:window_start + self.CHUNCK_SIZE])
-            window_start += int(0.075 * self.reader.FINAL_SAMPLE_RATE)
+            window_start += int(0.075 * self.reader.ORIGINAL_SAMPLE_RATE)
         return chuncks
 
 

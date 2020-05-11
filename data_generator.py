@@ -8,6 +8,7 @@ from sklearn import preprocessing
 from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, POSITIVE_PATH, NEGATIVE_PATH, TRAIN_SPLIT, \
     WINDOW_SIZE, BATCH_SIZE, CLASSES, PATIENT_CODE
 from edf_interfacer import NegativeEEGDatasetGenerator, PositiveEEGDatasetGenerator
+from frequency_splitter import butter_bandpass_filter
 
 
 class DataGenerator(Sequence):
@@ -56,21 +57,31 @@ class DataGenerator(Sequence):
     def _generate_X(self, paths):
         'Generates data containing batch_size images'
         # Initialization
-        X = np.empty((self.batch_size, *self.dim))
+        frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
+        X = np.empty((self.batch_size, 5, *self.dim))
 
         # Generate data
         for i, path in enumerate(paths):
             # Store sample
-            X[i,] = self._load_data(path)
+            for index, band in enumerate(frequency_bands):
+                low, high = band
+                filtered = butter_bandpass_filter(self._load_data(path), low, high, 256)
+                # filtered = self.scale(filtered)
+                X[i, index,] = filtered
 
         return X
 
     def _load_data(self, path):
-        data = np.loadtxt(path, delimiter=",")
+        data = np.load(path)
         data = data[:self.channels, :WINDOW_SIZE]
-        data = preprocessing.scale(data)
+        data = self.scale(data)
+        return data
+
+    def scale(self, data):
+        # data = preprocessing.scale(data)
         min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
         data = min_max_scaler.fit_transform(data)
+
         return data.reshape(self.dim)
 
     def _generate_y(self, paths):
@@ -99,12 +110,38 @@ class DataProducer:
         print(len(positive_dataset_generator.chunks))
 
     def load_data_with_channels(self, path, channels):
-        data = np.loadtxt(path, delimiter=",")
-        data = data[:channels, :WINDOW_SIZE]
-        data = preprocessing.scale(data)
-        min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
-        data = min_max_scaler.fit_transform(data)
-        return data.reshape((1, WINDOW_SIZE, channels))
+        # data = np.loadtxt(path, delimiter=",")
+        # data = data[:channels, :WINDOW_SIZE]
+        # data = preprocessing.scale(data)
+        # min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
+        # data = min_max_scaler.fit_transform(data)
+        # return data.reshape((1, WINDOW_SIZE, channels))
+        frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
+        X = np.empty((1, 5, 1, WINDOW_SIZE, channels))
+
+        # Generate data
+        for i, path in enumerate([path]):
+            # Store sample
+            for index, band in enumerate(frequency_bands):
+                low, high = band
+
+                # Preprocessing
+                data = np.load(path)
+                data = data[:channels, :WINDOW_SIZE]
+
+                # min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
+                # data = min_max_scaler.fit_transform(data)
+                data = data.reshape(1, WINDOW_SIZE, channels)
+
+                # Filtering
+                filtered = butter_bandpass_filter(data, low, high, 256)
+
+                # Postprocessing
+                # data = preprocessing.scale(filtered)
+
+                X[i, index,] = filtered
+
+        return X
 
     def __apply_path(self, file):
         if POSITIVE_FOLDER_NAME in file:
@@ -113,7 +150,7 @@ class DataProducer:
             return os.path.join(NEGATIVE_PATH, file)
 
     def __get_data_list(self):
-        data = os.listdir(POSITIVE_PATH) + os.listdir(NEGATIVE_PATH)
+        data = os.listdir(POSITIVE_PATH)[:18000] + os.listdir(NEGATIVE_PATH)[:18000]
         return list(map(self.__apply_path, data))
 
     def generate_files_split(self):

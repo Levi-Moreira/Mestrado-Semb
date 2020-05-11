@@ -1,7 +1,6 @@
 import numpy as np
 
 from data_generator import DataProducer
-from forward_pass import forward_pass
 from models.seizenet import SeizeNet
 
 
@@ -25,21 +24,20 @@ class Evaluator:
     def get_confusion_matrix(self):
         confusion_matrix = np.zeros((2, 2))
         for index, path in enumerate(self.test_data_path):
-            filepath = path.split("/")[-1]
-            path = "/Users/levialbuquerque/PycharmProjects/semb/test/" + filepath
 
             try:
                 data = self.data_producer.load_data_with_channels(path, self.channels)
-            except:
-                continue
-            print("Loading data #{}".format(index + 1))
-            class_label = self.seize_net.model.predict_classes(
-                data.reshape(1, data.shape[0], data.shape[1], data.shape[2]))
-            actual_label = self.test_data_labels[index]
+            except Exception as e:
+                raise e
+            # print("Loading data #{}".format(index + 1))
+            class_label = self.seize_net.model.predict(data)
+            class_label = 0 if class_label <= 0.5 else 1
+            actual_label = self.test_data_labels[index].item()
             confusion_matrix[actual_label, class_label] += 1
 
-            self.outputs.append(self.seize_net.model.predict(
-                data.reshape(1, data.shape[0], data.shape[1], data.shape[2])))
+            print("ACC: {}".format((confusion_matrix[0][0] + confusion_matrix[1][1]) * 100 / (index + 1)))
+
+            self.outputs.append(self.seize_net.model.predict(data))
         self.confusion_matrix = confusion_matrix
         return confusion_matrix
 
@@ -48,69 +46,11 @@ class Evaluator:
                    delimiter=",")
 
 
-class EvaluatorPy:
-    file_per_channels = {
-        2: "best_model_2.h5",
-        18: "best_model_18.h5",
-        31: "best_model_38.h5"
-    }
-
-    def __init__(self, channels):
-        self.confusion_matrix = None
-        self.channels = channels
-
-    def get_confusion_matrix(self):
-        data_producer = DataProducer()
-        test_data_path = data_producer.get_test_files()
-        test_data_labels = data_producer.build_labels(test_data_path)
-
-        confusion_matrix = np.zeros((2, 2))
-        for index, file in enumerate(test_data_path):
-            print("Reading file #{}".format(index + 1))
-            Y = int(test_data_labels[index].item())
-            Y_hat = forward_pass(file, self.channels)
-            confusion_matrix[Y, Y_hat] += 1
-        self.confusion_matrix = confusion_matrix
-
-    def save_stats(self):
-        np.savetxt("py2_stats_for_{}.txt".format(self.file_per_channels[self.channels]), self.confusion_matrix,
-                   delimiter=",")
-
-
-class ModelWeightsExtractor:
-
-    def __init__(self, model_file, channels):
-        import tensorflow as tf
-        self.model_file_name = model_file
-        self.seize_net = SeizeNet(channels)
-        self.seize_net.load_model(model_file)
-
-    def export_weights(self):
-        for layer in self.seize_net.model.layers:
-            if "dense" in layer.name or "conv" in layer.name:
-                layer_name = layer.name
-                weights, biases = layer.get_weights()
-                self.save_file("{}_{}_weights.npy".format(self.model_file_name, layer_name), weights.flatten())
-                self.save_file("{}_{}_bias.npy".format(self.model_file_name, layer_name), biases.flatten())
-
-            if "batch" in layer.name:
-                layer_name = layer.name
-                gamma, beta, mean, variance = layer.get_weights()
-                # mean, variance = layer.moving_mean.numpy(), layer.moving_variance.numpy()
-                self.save_file("{}_{}_beta.npy".format(self.model_file_name, layer_name), beta.flatten())
-                self.save_file("{}_{}_gamma.npy".format(self.model_file_name, layer_name), gamma.flatten())
-                self.save_file("{}_{}_mean.npy".format(self.model_file_name, layer_name), mean.flatten())
-                self.save_file("{}_{}_variance.npy".format(self.model_file_name, layer_name), variance.flatten())
-
-    def save_file(self, name, data):
-        np.savetxt(name, data)
-
-
-extractor = ModelWeightsExtractor("/Volumes/ELEMENTS/Mestrado/CNN/BALANCED_DATA/CHB15/best_model_2.h5", 2)
-extractor.export_weights()
-# evaluator = Evaluator(23)
-# evaluator.get_confusion_matrix()
-# evaluator.save_stats()
+# extractor = ModelWeightsExtractor("/Volumes/ELEMENTS/Mestrado/CNN/BALANCED_DATA/CHB15/best_model_2.h5", 2)
+# extractor.export_weights()
+evaluator = Evaluator(23)
+evaluator.get_confusion_matrix()
+evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
 # import numpy as np
 #

@@ -1,52 +1,81 @@
-from keras import Sequential
+from keras import Input, Model
 from keras.callbacks import ModelCheckpoint
 from keras.engine.saving import load_model
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization
-from keras.optimizers import Adam
+from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Lambda, Concatenate
+from keras.optimizers import Adam, SGD
+from keras.utils import plot_model
+from tensorflow_core.python.keras.optimizer_v2.learning_rate_schedule import ExponentialDecay
 
 from constants import WINDOW_SIZE
 
 
 class SeizeNet:
     def __init__(self, channels):
-        self.model = None
         self.channels = channels
         self.mc = ModelCheckpoint('best_model_{}.h5'.format(self.channels), monitor='val_loss', mode='min',
                                   save_best_only=True)
-        self.build_model()
+
+        frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
+
+        input = Input(shape=(len(frequency_bands), 1, WINDOW_SIZE, self.channels))
+
+        branch_outputs = []
+        for index, band in enumerate(frequency_bands):
+            out = Lambda(lambda x: x[:, index])(input)
+            out = self.build_model(out)
+            branch_outputs.append(out)
+
+        out = Concatenate()(branch_outputs)
+        out = Dense(50, activation='relu')(out)
+        out = BatchNormalization()(out)
+        out = Dropout(0.5)(out)
+        out = Dense(len(frequency_bands))(out)
+        out = BatchNormalization()(out)
+        out = Dropout(0.5)(out)
+        out = Dense(1, activation='sigmoid')(out)
+        self.model = Model(inputs=input, outputs=out)
+
+        plot_model(
+            self.model,
+            to_file="model.png",
+            show_shapes=False,
+            show_layer_names=True,
+            rankdir="TB",
+            expand_nested=False,
+            dpi=96,
+        )
 
         print("STARTING CREATING MODEL:")
         print('best_model_{}.h5'.format(self.channels))
 
-    def build_model(self):
-        self.model = Sequential()
-        self.model.add(
-            Conv2D(8, (1, 10), activation='relu', input_shape=(1, WINDOW_SIZE, self.channels)))
-        self.model.add(MaxPooling2D((1, 2)))
-        self.model.add(Dropout(0.2))
+    def build_model(self, input_tensor):
+        model = Conv2D(8, (1, 10), activation='relu')(input_tensor)
+        model = MaxPooling2D((1, 2))(model)
+        model = Dropout(0.2)(model)
 
-        self.model.add(Conv2D(16, (1, 10), activation='relu'))
-        self.model.add(BatchNormalization())
-        self.model.add(MaxPooling2D((1, 2)))
-        self.model.add(Dropout(0.2))
+        model = Conv2D(16, (1, 10), activation='relu')(model)
+        model = BatchNormalization()(model)
+        model = MaxPooling2D((1, 2))(model)
+        model = Dropout(0.2)(model)
 
-        self.model.add(Conv2D(32, (1, 10), activation='relu'))
-        self.model.add(BatchNormalization())
-        self.model.add(MaxPooling2D((1, 2)))
-        self.model.add(Dropout(0.2))
+        model = Conv2D(32, (1, 10), activation='relu')(model)
+        model = BatchNormalization()(model)
+        model = MaxPooling2D((1, 2))(model)
+        model = Dropout(0.2)(model)
 
-        self.model.add(Conv2D(64, (1, 10), activation='relu'))
-        self.model.add(BatchNormalization())
-        self.model.add(MaxPooling2D((1, 2)))
-        self.model.add(Dropout(0.2))
+        model = Conv2D(64, (1, 10), activation='relu')(model)
+        model = BatchNormalization()(model)
+        model = MaxPooling2D((1, 2))(model)
+        model = Dropout(0.2)(model)
 
-        self.model.add(Flatten())
-        self.model.add(Dense(50, activation='relu'))
-        self.model.add(BatchNormalization())
-        self.model.add(Dropout(0.5))
-        self.model.add(Dense(1, activation='sigmoid'))
+        model = Flatten()(model)
 
-        return self.model
+        model = Dense(50, activation='relu')(model)
+        model = BatchNormalization()(model)
+        model = Dropout(0.5)(model)
+
+
+        return model
 
     def get_model_summary(self):
         self.model.summary()
