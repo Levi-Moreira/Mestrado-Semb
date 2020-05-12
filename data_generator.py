@@ -65,24 +65,27 @@ class DataGenerator(Sequence):
             # Store sample
             for index, band in enumerate(frequency_bands):
                 low, high = band
-                filtered = butter_bandpass_filter(self._load_data(path), low, high, 256)
+                filtered = butter_bandpass_filter(DataGenerator._load_data(path, self.channels, self.dim), low, high,
+                                                  256)
                 # filtered = self.scale(filtered)
                 X[i, index,] = filtered
 
         return X
 
-    def _load_data(self, path):
+    @staticmethod
+    def _load_data(path, channels, dim):
         data = np.load(path)
-        data = data[:self.channels, :WINDOW_SIZE]
-        data = self.scale(data)
+        data = data[:channels, :WINDOW_SIZE]
+        data = DataGenerator.scale(data, dim)
         return data
 
-    def scale(self, data):
+    @staticmethod
+    def scale(data, dim):
         # data = preprocessing.scale(data)
         min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
         data = min_max_scaler.fit_transform(data)
 
-        return data.reshape(self.dim)
+        return data.reshape(dim)
 
     def _generate_y(self, paths):
         'Generates data containing batch_size masks'
@@ -126,31 +129,23 @@ class DataProducer:
                 low, high = band
 
                 # Preprocessing
-                data = np.load(path)
-                data = data[:channels, :WINDOW_SIZE]
-
-                # min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
-                # data = min_max_scaler.fit_transform(data)
-                data = data.reshape(1, WINDOW_SIZE, channels)
-
-                # Filtering
-                filtered = butter_bandpass_filter(data, low, high, 256)
-
-                # Postprocessing
-                # data = preprocessing.scale(filtered)
+                filtered = butter_bandpass_filter(
+                    DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels)), low, high, 256)
 
                 X[i, index,] = filtered
 
         return X
 
-    def __apply_path(self, file):
+    @staticmethod
+    def __apply_path(file):
         if POSITIVE_FOLDER_NAME in file:
             return os.path.join(POSITIVE_PATH, file)
         else:
             return os.path.join(NEGATIVE_PATH, file)
 
     def __get_data_list(self):
-        data = os.listdir(POSITIVE_PATH)[:18000] + os.listdir(NEGATIVE_PATH)[:18000]
+        BALACING_FACTOR = 5480
+        data = os.listdir(POSITIVE_PATH)[:BALACING_FACTOR] + os.listdir(NEGATIVE_PATH)[:BALACING_FACTOR]
         return list(map(self.__apply_path, data))
 
     def generate_files_split(self):
@@ -199,3 +194,54 @@ class DataProducer:
             else:
                 y[i,] = 0
         return y
+
+
+def generate_max_splits():
+    patients_to_train = ["chb01", "chb02", "chb03", "chb05", "chb07", "chb08", "chb09", "chb10"]
+    maxs = [10860, 4190, 9790, 14218, 8268, 23842, 8826, 12990]
+
+    patients_to_test = ["chb15"]
+    maxs_to_test = [18000]
+
+    def __apply_path(file):
+        if POSITIVE_FOLDER_NAME in file:
+            return os.path.join(POSITIVE_PATH, file)
+        else:
+            return os.path.join(NEGATIVE_PATH, file)
+
+    full_path_data = []
+    for index, patient in enumerate(patients_to_train):
+        POSITIVE_PATH = os.path.join(os.getcwd(), *["data", patient, POSITIVE_FOLDER_NAME])
+        NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", patient, NEGATIVE_FOLDER_NAME])
+        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs[index] / 2)]
+        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs[index] / 2)]
+        data = set(pos_dir + neg_dir)
+        full_path_data += list(map(__apply_path, data))
+
+    random.shuffle(full_path_data)
+    data_count = len(full_path_data)
+    split_point_val = int(data_count * TRAIN_SPLIT)
+    train_data = full_path_data[0:split_point_val]
+    val_data = full_path_data[split_point_val:]
+
+    with open('train.txt', 'w') as f:
+        for item in train_data:
+            f.write("%s\n" % item)
+
+    with open('val.txt', 'w') as f:
+        for item in val_data:
+            f.write("%s\n" % item)
+
+    full_path_test_data = []
+    for index, patient in enumerate(patients_to_test):
+        POSITIVE_PATH = os.path.join(os.getcwd(), *["data", patient, POSITIVE_FOLDER_NAME])
+        NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", patient, NEGATIVE_FOLDER_NAME])
+        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs_to_test[index] / 2)]
+        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs_to_test[index] / 2)]
+        data = set(pos_dir + neg_dir)
+        full_path_test_data += list(map(__apply_path, data))
+
+    test_data = full_path_test_data
+    with open('test.txt', 'w') as f:
+        for item in test_data:
+            f.write("%s\n" % item)

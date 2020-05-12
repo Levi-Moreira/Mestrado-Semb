@@ -1,6 +1,7 @@
 import numpy as np
+from sklearn.metrics import classification_report
 
-from data_generator import DataProducer
+from data_generator import DataProducer, DataGenerator
 from models.seizenet import SeizeNet
 
 

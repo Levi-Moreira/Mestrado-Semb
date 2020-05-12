@@ -1,4 +1,4 @@
-from keras import Input, Model
+from keras import Input, Model, optimizers
 from keras.callbacks import ModelCheckpoint
 from keras.engine.saving import load_model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Lambda, Concatenate
@@ -26,12 +26,7 @@ class SeizeNet:
             branch_outputs.append(out)
 
         out = Concatenate()(branch_outputs)
-        out = Dense(50, activation='relu')(out)
-        out = BatchNormalization()(out)
-        out = Dropout(0.5)(out)
         out = Dense(len(frequency_bands))(out)
-        out = BatchNormalization()(out)
-        out = Dropout(0.5)(out)
         out = Dense(1, activation='sigmoid')(out)
         self.model = Model(inputs=input, outputs=out)
 
@@ -70,7 +65,7 @@ class SeizeNet:
 
         model = Flatten()(model)
 
-        model = Dense(50, activation='relu')(model)
+        model = Dense(10, activation='relu')(model)
         model = BatchNormalization()(model)
         model = Dropout(0.5)(model)
 
@@ -86,9 +81,9 @@ class SeizeNet:
                            metrics=['accuracy'])
 
     def fit_data(self, train_generator, test_generator):
-        self.history = self.model.fit_generator(generator=train_generator, epochs=10,
+        self.history = self.model.fit_generator(generator=train_generator, epochs=20,
                                                 validation_data=test_generator, callbacks=[self.mc, ])
 
     def load_model(self, file):
-        self.model = load_model(file)
+        self.model.load_weights(file)
         self.model.summary()

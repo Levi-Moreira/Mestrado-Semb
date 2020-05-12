@@ -2,9 +2,8 @@ import os
 
 import numpy as np
 import pyedflib
-from scipy.signal import resample
 
-from constants import OLD_SAMPLE_RATE, NEW_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER
+from constants import OLD_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER
 
 CHANNELS = 2
 
@@ -59,6 +58,7 @@ class BaseDatabaseGenerator:
                 info["number_of_seizures"] = seizures
                 if seizures > 0:
                     info["seizure_info"] = []
+                    lines = list(filter(lambda x: x is not "", lines))
                     for n in range(4, len(lines), 2):
                         seizure_info = {}
                         start_time = lines[n].split(":")[1]
@@ -125,5 +125,8 @@ class CHBFolderExporer:
         all_files = os.listdir(os.path.join(os.getcwd(), "data/{}".format(subject_folder)))
         edf_files = list(filter(lambda file: ".edf" in file, all_files))
         seizure_edf_files = list(filter(lambda file: ".seizures" in file, edf_files))
-        self.negative_edf_files = list(set(map(lambda file: file.strip(".seizures"), edf_files)))
         self.positive_edf_files = list(map(lambda file: file.strip(".seizures"), seizure_edf_files))
+
+        self.negative_edf_files = list(set(map(lambda file: file.strip(".seizures"), edf_files)))
+        self.negative_edf_files = list(set(self.negative_edf_files) - set(self.positive_edf_files))
+        print()
