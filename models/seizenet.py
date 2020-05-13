@@ -12,7 +12,7 @@ from constants import WINDOW_SIZE
 class SeizeNet:
     def __init__(self, channels):
         self.channels = channels
-        self.mc = ModelCheckpoint('best_model_{}.h5'.format(self.channels), monitor='val_loss', mode='min',
+        self.mc = ModelCheckpoint('best_model_23_{epoch:02d}.h5', monitor='val_loss', mode='min',
                                   save_best_only=True)
 
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
@@ -26,6 +26,10 @@ class SeizeNet:
             branch_outputs.append(out)
 
         out = Concatenate()(branch_outputs)
+        out = Dense(50, activation='relu')(out)
+        out = BatchNormalization()(out)
+        out = Dropout(0.5)(out)
+
         out = Dense(len(frequency_bands))(out)
         out = Dense(1, activation='sigmoid')(out)
         self.model = Model(inputs=input, outputs=out)
@@ -65,7 +69,7 @@ class SeizeNet:
 
         model = Flatten()(model)
 
-        model = Dense(10, activation='relu')(model)
+        model = Dense(50, activation='relu')(model)
         model = BatchNormalization()(model)
         model = Dropout(0.5)(model)
 

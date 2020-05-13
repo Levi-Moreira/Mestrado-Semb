@@ -197,8 +197,8 @@ class DataProducer:
 
 
 def generate_max_splits():
-    patients_to_train = ["chb01", "chb02", "chb03", "chb05", "chb07", "chb08", "chb09", "chb10"]
-    maxs = [10860, 4190, 9790, 14218, 8268, 23842, 8826, 12990]
+    patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10"]
+    maxs = [10860, 4190, 9790, 9550, 14218, 2754, 8268, 23842, 8826, 12990]
 
     patients_to_test = ["chb15"]
     maxs_to_test = [18000]

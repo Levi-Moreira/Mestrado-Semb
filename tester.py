@@ -9,7 +9,7 @@ class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
         13: "best_model_13.h5",
-        23: "best_model_23.h5"
+        23: "best_model_23_20.h5"
     }
 
     def __init__(self, channels):
@@ -35,7 +35,7 @@ class Evaluator:
             class_label = 0 if class_label <= 0.5 else 1
             actual_label = self.test_data_labels[index].item()
             confusion_matrix[actual_label, class_label] += 1
-
+            print(path)
             print("ACC: {}".format((confusion_matrix[0][0] + confusion_matrix[1][1]) * 100 / (index + 1)))
 
             self.outputs.append(self.seize_net.model.predict(data))
