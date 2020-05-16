@@ -13,6 +13,10 @@ class EEGReader:
 
     CHANNEL_NUMBER = CHANNELS
 
+    channels_names = ['FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'FP2-F4', 'F4-C4',
+                      'C4-P4', 'P4-O2', 'FP2-F8', 'F8-T8', 'T8-P8', 'P8-O2', 'FZ-CZ', 'CZ-PZ', 'P7-T7', 'T7-FT9',
+                      'FT9-FT10', 'FT10-T8', 'T8-P8']
+
     def read_file(self, file_path):
         print("Reading file: {}".format(file_path))
         eeg_file = pyedflib.EdfReader(file_path)
@@ -20,9 +24,22 @@ class EEGReader:
         number_of_seconds = int(eeg_file.getNSamples()[0]) / self.ORIGINAL_SAMPLE_RATE
         intended_number_of_samples = int(number_of_seconds * self.ORIGINAL_SAMPLE_RATE)
         result = np.zeros((n, intended_number_of_samples), dtype=np.float16)
-        for i in np.arange(n):
+
+        channel_labels = eeg_file.getSignalLabels()
+
+        channels_indexes = list()
+        for chn in self.channels_names:
+            if chn in channel_labels:
+                channels_indexes.append(channel_labels.index(chn))
+
+        output_index = 0
+
+        if len(channels_indexes) < 23:
+            raise OSError
+        for i in channels_indexes:
             original_signal = eeg_file.readSignal(i)
-            result[i, :] = original_signal
+            result[output_index, :] = original_signal
+            output_index += 1
         return result
 
     def read_file_in_interval(self, file_path, start, end):
@@ -87,6 +104,7 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
             try:
                 data = self.reader.read_file(file_path)
             except OSError:
+                print("Dropped file: {}".format(file))
                 continue
             self.chunks.extend(np.array_split(data, int(data.shape[1] / self.CHUNCK_SIZE), axis=1))
 
@@ -107,6 +125,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
                     try:
                         data = self.reader.read_file_in_interval(file_path, start_sample, end_sample)
                     except OSError:
+                        print("Dropped file: {}".format(file))
                         continue
                     cc = self.__get_positive_chunks_from_data(data)
                     self.chunks.extend(cc)

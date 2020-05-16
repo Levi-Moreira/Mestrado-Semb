@@ -9,7 +9,7 @@ class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
         13: "best_model_13.h5",
-        23: "best_model_23_17.h5"
+        23: "best_model_23_07.h5"
     }
 
     def __init__(self, channels):

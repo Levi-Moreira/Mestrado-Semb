@@ -37,7 +37,7 @@ from models.seizenet import SeizeNet
 #
 CHANNELS = 23
 producer = DataProducer()
-# generate_max_splits()
+generate_max_splits()
 train_data, val_data = producer.get_files_split()
 # train_data = train_data[0:int(len(train_data) / 2)]
 # val_data = val_data[0:int(len(val_data) / 2)]
