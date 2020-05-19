@@ -1,10 +1,8 @@
-from keras import Input, Model, optimizers
+from keras import Input, Model
 from keras.callbacks import ModelCheckpoint
-from keras.engine.saving import load_model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Lambda, Concatenate
-from keras.optimizers import Adam, SGD
+from keras.optimizers import Adam
 from keras.utils import plot_model
-from tensorflow_core.python.keras.optimizer_v2.learning_rate_schedule import ExponentialDecay
 
 from constants import WINDOW_SIZE
 
@@ -13,7 +11,7 @@ class SeizeNet:
     def __init__(self, channels):
         self.channels = channels
         self.mc = ModelCheckpoint('best_model_23_{epoch:02d}.h5', monitor='val_loss', mode='min',
-                                  save_best_only=True)
+                                  save_best_only=False)
 
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
 
@@ -73,7 +71,6 @@ class SeizeNet:
         model = BatchNormalization()(model)
         model = Dropout(0.5)(model)
 
-
         return model
 
     def get_model_summary(self):
@@ -85,9 +82,10 @@ class SeizeNet:
                            metrics=['accuracy'])
 
     def fit_data(self, train_generator, test_generator):
-        self.history = self.model.fit_generator(generator=train_generator, epochs=20,
+        self.history = self.model.fit_generator(generator=train_generator, epochs=30,
                                                 validation_data=test_generator, callbacks=[self.mc, ])
 
     def load_model(self, file):
+        print("Loading model from file{}".format(file))
         self.model.load_weights(file)
         self.model.summary()

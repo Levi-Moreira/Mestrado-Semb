@@ -58,7 +58,7 @@ class DataGenerator(Sequence):
         'Generates data containing batch_size images'
         # Initialization
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
-        X = np.empty((self.batch_size, 5, *self.dim))
+        X = np.empty((self.batch_size, 5, *self.dim), dtype=np.float64)
 
         # Generate data
         for i, path in enumerate(paths):
@@ -74,7 +74,7 @@ class DataGenerator(Sequence):
 
     @staticmethod
     def _load_data(path, channels, dim):
-        data = np.load(path)
+        data = np.load(path).astype('float64')
         data = data[:channels, :WINDOW_SIZE]
         data = DataGenerator.scale(data, dim)
         return data
@@ -197,11 +197,15 @@ class DataProducer:
 
 
 def generate_max_splits():
-    patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10"]
-    maxs = [10860, 4190, 9790, 9550, 14218, 2754, 8268, 23842, 8826, 12990]
+    patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10",
+                         "chb11", "chb12", "chb13", "chb14", "chb16", "chb17", "chb18", "chb19", "chb20",
+                         "chb21", "chb22", "chb23", "chb24"]
+    maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556,
+            10660, 7924, 2881, 1746, 395, 3749, 3870, 2980, 3428,
+            2415, 2549, 5246, 5815]
 
     patients_to_test = ["chb15"]
-    maxs_to_test = [18000]
+    maxs_to_test = [18001]
 
     def __apply_path(file):
         if POSITIVE_FOLDER_NAME in file:
@@ -211,10 +215,14 @@ def generate_max_splits():
 
     full_path_data = []
     for index, patient in enumerate(patients_to_train):
-        POSITIVE_PATH = os.path.join(os.getcwd(), *["data", patient, POSITIVE_FOLDER_NAME])
-        NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", patient, NEGATIVE_FOLDER_NAME])
-        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs[index] / 2)]
-        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs[index] / 2)]
+        POSITIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                       POSITIVE_FOLDER_NAME])
+        NEGATIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                       NEGATIVE_FOLDER_NAME])
+        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs[index])]
+        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs[index])]
         data = set(pos_dir + neg_dir)
         full_path_data += list(map(__apply_path, data))
 
@@ -234,8 +242,12 @@ def generate_max_splits():
 
     full_path_test_data = []
     for index, patient in enumerate(patients_to_test):
-        POSITIVE_PATH = os.path.join(os.getcwd(), *["data", patient, POSITIVE_FOLDER_NAME])
-        NEGATIVE_PATH = os.path.join(os.getcwd(), *["data", patient, NEGATIVE_FOLDER_NAME])
+        POSITIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                       POSITIVE_FOLDER_NAME])
+        NEGATIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                       NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs_to_test[index] / 2)]
         neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs_to_test[index] / 2)]
         data = set(pos_dir + neg_dir)

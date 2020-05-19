@@ -1,0 +1,3 @@
+from data_generator import generate_max_splits
+
+generate_max_splits()

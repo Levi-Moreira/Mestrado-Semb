@@ -1,7 +1,6 @@
 import numpy as np
-from sklearn.metrics import classification_report
 
-from data_generator import DataProducer, DataGenerator
+from data_generator import DataProducer
 from models.seizenet import SeizeNet
 
 
@@ -9,13 +8,17 @@ class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
         13: "best_model_13.h5",
-        23: "best_model_23_07.h5"
+        23: "best_model_23.h5"
     }
 
-    def __init__(self, channels):
+    def __init__(self, channels, filename=None):
         self.channels = channels
         self.seize_net = SeizeNet(channels)
-        self.seize_net.load_model(self.file_per_channels[channels])
+        if filename:
+            self.filename = filename
+        else:
+            self.filename = self.file_per_channels[channels]
+        self.seize_net.load_model(self.filename)
         self.confusion_matrix = None
         self.data_producer = DataProducer()
         self.test_data_path = self.data_producer.get_test_files()
@@ -43,15 +46,18 @@ class Evaluator:
         return confusion_matrix
 
     def save_stats(self):
-        np.savetxt("stats_for_{}.txt".format(self.file_per_channels[self.channels]), self.confusion_matrix,
+        np.savetxt("stats_for_{}.txt".format(self.filename), self.confusion_matrix,
                    delimiter=",")
 
 
 # extractor = ModelWeightsExtractor("/Volumes/ELEMENTS/Mestrado/CNN/BALANCED_DATA/CHB15/best_model_2.h5", 2)
 # extractor.export_weights()
-evaluator = Evaluator(23)
-evaluator.get_confusion_matrix()
-evaluator.save_stats()
+
+for epoch in range(25, 31):
+    filename = "best_model_23_{:02d}.h5".format(epoch)
+    evaluator = Evaluator(23, filename)
+    evaluator.get_confusion_matrix()
+    evaluator.save_stats()
 # file = "/Users/levialbuquerque/PycharmProjects/semb/data/chb15/positive/positive_23027.txt"
 # import numpy as np
 #

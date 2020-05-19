@@ -61,7 +61,7 @@ class BaseDatabaseGenerator:
         self.explorer = CHBFolderExporer(subject)
 
     def __summary_builder(self):
-        file = open(os.path.join(os.getcwd(), *["data", self.subject, "{}-summary.txt".format(self.subject)]), "r")
+        file = open(os.path.join(os.getcwd(), *["data",  "chb-mit-scalp-eeg-database-1.0.0", self.subject, "{}-summary.txt".format(self.subject)]), "r")
         file = str(file.read())
         file = file.split("\n\n")
         infos = {}
@@ -87,7 +87,7 @@ class BaseDatabaseGenerator:
         self.summary = infos
 
     def save_chunks(self, folder_name):
-        file_path = os.path.join(os.getcwd(), *["data", self.subject, folder_name])
+        file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0",self.subject, folder_name])
         for index, chunck in enumerate(self.chunks):
             np.save(os.path.join(file_path, "{}_{}".format(folder_name, index)), chunck)
 
@@ -100,7 +100,7 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chuncks(self, subject):
         for file in self.negative_files:
-            file_path = os.path.join(os.getcwd(), *["data", subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0",subject, file])
             try:
                 data = self.reader.read_file(file_path)
             except OSError:
@@ -117,7 +117,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chunks(self, subject):
         for file in self.positive_files:
-            file_path = os.path.join(os.getcwd(), *["data", subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0",subject, file])
             if self.summary[file]["seizure_info"]:
                 for info in self.summary[file]["seizure_info"]:
                     start_sample = info["start_time"] * self.reader.ORIGINAL_SAMPLE_RATE
@@ -141,7 +141,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
 
 class CHBFolderExporer:
     def __init__(self, subject_folder):
-        all_files = os.listdir(os.path.join(os.getcwd(), "data/{}".format(subject_folder)))
+        all_files = os.listdir(os.path.join(os.getcwd(), "data/chb-mit-scalp-eeg-database-1.0.0/{}".format(subject_folder)))
         edf_files = list(filter(lambda file: ".edf" in file, all_files))
         seizure_edf_files = list(filter(lambda file: ".seizures" in file, edf_files))
         self.positive_edf_files = list(map(lambda file: file.strip(".seizures"), seizure_edf_files))
