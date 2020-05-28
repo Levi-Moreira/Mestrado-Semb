@@ -22,7 +22,7 @@ class DataGenerator(Sequence):
         self.paths = paths
         self.to_fit = to_fit
         self.batch_size = batch_size
-        self.dim = (1, WINDOW_SIZE, self.channels)
+        self.dim = (1,  WINDOW_SIZE, self.channels)
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -58,17 +58,18 @@ class DataGenerator(Sequence):
         'Generates data containing batch_size images'
         # Initialization
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
-        X = np.empty((self.batch_size, 5, *self.dim), dtype=np.float64)
+        X = np.empty((self.batch_size, *self.dim), dtype=np.float64)
 
         # Generate data
         for i, path in enumerate(paths):
             # Store sample
-            for index, band in enumerate(frequency_bands):
-                low, high = band
-                filtered = butter_bandpass_filter(DataGenerator._load_data(path, self.channels, self.dim), low, high,
-                                                  256)
-                # filtered = self.scale(filtered)
-                X[i, index,] = filtered
+            X[i, ] = DataGenerator._load_data(path, self.channels, self.dim)
+            # for index, band in enumerate(frequency_bands):
+            #     low, high = band
+            #     filtered = butter_bandpass_filter(DataGenerator._load_data(path, self.channels, self.dim), low, high,
+            #                                       256)
+            #     # filtered = self.scale(filtered)
+            #     X[i, index,] = filtered
 
         return X
 
@@ -89,15 +90,17 @@ class DataGenerator(Sequence):
 
     def _generate_y(self, paths):
         'Generates data containing batch_size masks'
-        y = np.empty((self.batch_size, 1), dtype=int)
+        y = np.empty((self.batch_size, 2), dtype=int)
 
         # Generate data
         for i, path in enumerate(paths):
             # Store sample
             if POSITIVE_FOLDER_NAME in path:
-                y[i,] = 1
+                y[i,1] = 1.0
+                y[i,0] = 0.0
             else:
-                y[i,] = 0
+                y[i,1] = 0.0
+                y[i,0] = 1.0
         return y
 
 
@@ -120,19 +123,20 @@ class DataProducer:
         # data = min_max_scaler.fit_transform(data)
         # return data.reshape((1, WINDOW_SIZE, channels))
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
-        X = np.empty((1, 5, 1, WINDOW_SIZE, channels))
+        X = np.empty((1, 1, WINDOW_SIZE, channels))
 
         # Generate data
         for i, path in enumerate([path]):
             # Store sample
-            for index, band in enumerate(frequency_bands):
-                low, high = band
-
-                # Preprocessing
-                filtered = butter_bandpass_filter(
-                    DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels)), low, high, 256)
-
-                X[i, index,] = filtered
+            X[i,] =  DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels))
+            # for index, band in enumerate(frequency_bands):
+            #     low, high = band
+            #
+            #     # Preprocessing
+            #     filtered = butter_bandpass_filter(
+            #         DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels)), low, high, 256)
+            #
+            #     X[i, index,] = filtered
 
         return X
 
@@ -197,12 +201,16 @@ class DataProducer:
 
 
 def generate_max_splits():
-    patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10",
+    patients_to_train = [ "chb07", "chb08", "chb09", "chb10",
                          "chb11", "chb12", "chb13", "chb14", "chb16", "chb17", "chb18", "chb19", "chb20",
                          "chb21", "chb22", "chb23", "chb24"]
+
+    # patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10"]
     maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556,
             10660, 7924, 2881, 1746, 395, 3749, 3870, 2980, 3428,
             2415, 2549, 5246, 5815]
+
+    # maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556]
 
     patients_to_test = ["chb15"]
     maxs_to_test = [18001]
@@ -221,8 +229,8 @@ def generate_max_splits():
         NEGATIVE_PATH = os.path.join(os.getcwd(),
                                      *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
                                        NEGATIVE_FOLDER_NAME])
-        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs[index])]
-        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs[index])]
+        pos_dir = os.listdir(POSITIVE_PATH)
+        neg_dir = os.listdir(NEGATIVE_PATH)
         data = set(pos_dir + neg_dir)
         full_path_data += list(map(__apply_path, data))
 
@@ -248,8 +256,8 @@ def generate_max_splits():
         NEGATIVE_PATH = os.path.join(os.getcwd(),
                                      *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
                                        NEGATIVE_FOLDER_NAME])
-        pos_dir = os.listdir(POSITIVE_PATH)[:int(maxs_to_test[index] / 2)]
-        neg_dir = os.listdir(NEGATIVE_PATH)[:int(maxs_to_test[index] / 2)]
+        pos_dir = os.listdir(POSITIVE_PATH)
+        neg_dir = os.listdir(NEGATIVE_PATH)
         data = set(pos_dir + neg_dir)
         full_path_test_data += list(map(__apply_path, data))
 

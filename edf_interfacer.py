@@ -49,6 +49,8 @@ class EEGReader:
 
 class BaseDatabaseGenerator:
     CHUNCK_SIZE = WINDOW_SIZE
+    # SHIFT_WINDOW = 0.075
+    SHIFT_WINDOW = 1
     LIMIT_FILES = 2
     FILE_NAME_POSITION = 0
     NUMBER_OF_SEIZURE_POSITION = 3
@@ -135,7 +137,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
         window_start = 0
         while (window_start + self.CHUNCK_SIZE) < data.shape[1]:
             chuncks.append(data[:, window_start:window_start + self.CHUNCK_SIZE])
-            window_start += int(0.075 * self.reader.ORIGINAL_SAMPLE_RATE)
+            window_start += int(self.SHIFT_WINDOW * self.reader.ORIGINAL_SAMPLE_RATE)
         return chuncks
 
 

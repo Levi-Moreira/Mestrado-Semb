@@ -1,6 +1,7 @@
 from keras import Input, Model
 from keras.callbacks import ModelCheckpoint
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Lambda, Concatenate
+from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Lambda, Concatenate, LSTM, \
+    TimeDistributed, GlobalAveragePooling2D, GlobalAveragePooling1D, Reshape, Conv1D
 from keras.optimizers import Adam
 from keras.utils import plot_model
 
@@ -15,21 +16,23 @@ class SeizeNet:
 
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
 
-        input = Input(shape=(len(frequency_bands), 1, WINDOW_SIZE, self.channels))
+        input = Input(shape=(1, WINDOW_SIZE, self.channels))
+        out = self.build_model(input)
+        # branch_outputs = []
+        # for index, band in enumerate(frequency_bands):
+        #     out = Lambda(lambda x: x[:, index])(input)
+        #     out = self.build_model(out)
+        #     branch_outputs.append(out)
 
-        branch_outputs = []
-        for index, band in enumerate(frequency_bands):
-            out = Lambda(lambda x: x[:, index])(input)
-            out = self.build_model(out)
-            branch_outputs.append(out)
-
-        out = Concatenate()(branch_outputs)
-        out = Dense(50, activation='relu')(out)
-        out = BatchNormalization()(out)
-        out = Dropout(0.5)(out)
-
-        out = Dense(len(frequency_bands))(out)
-        out = Dense(1, activation='sigmoid')(out)
+        # out = Concatenate()(branch_outputs)
+        # out = Reshape((5,50))(out)
+        # out = GlobalAveragePooling1D()(out)
+        # out = Dense(10, activation='relu')(out)
+        # out = BatchNormalization()(out)
+        # out = Dropout(0.5)(out)
+        #
+        # out = Dense(len(frequency_bands))(out)
+        out = Dense(2, activation='softmax')(out)
         self.model = Model(inputs=input, outputs=out)
 
         plot_model(
@@ -46,30 +49,37 @@ class SeizeNet:
         print('best_model_{}.h5'.format(self.channels))
 
     def build_model(self, input_tensor):
-        model = Conv2D(8, (1, 10), activation='relu')(input_tensor)
-        model = MaxPooling2D((1, 2))(model)
+        model = Conv2D(8, (10, 1), activation='relu', data_format='channels_first')(input_tensor)
+        # model = MaxPooling2D((2, 1), data_format='channels_first')(model)
+        # model = Dropout(0.2)(model)
+
+        model = Conv2D(16, (8, 23), activation='relu', data_format='channels_first')(model)
+        model = BatchNormalization()(model)
+        model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
 
-        model = Conv2D(16, (1, 10), activation='relu')(model)
+        model = Reshape((1, 632, 16))(model)
+
+        model = Conv2D(32, (10, 16), activation='relu', data_format='channels_first')(model)
         model = BatchNormalization()(model)
-        model = MaxPooling2D((1, 2))(model)
+        model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
 
-        model = Conv2D(32, (1, 10), activation='relu')(model)
-        model = BatchNormalization()(model)
-        model = MaxPooling2D((1, 2))(model)
-        model = Dropout(0.2)(model)
+        model = Reshape((1, 311, 32))(model)
 
-        model = Conv2D(64, (1, 10), activation='relu')(model)
+        model = Conv2D(64, (10, 32), activation='relu', data_format='channels_first')(model)
         model = BatchNormalization()(model)
-        model = MaxPooling2D((1, 2))(model)
+        model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
 
         model = Flatten()(model)
 
-        model = Dense(50, activation='relu')(model)
-        model = BatchNormalization()(model)
-        model = Dropout(0.5)(model)
+        # model = Dense(2048, activation='relu')(model)
+        # model = BatchNormalization()(model)
+        # model = Dropout(0.5)(model)
+        # model = Dense(2048, activation='relu')(model)
+        # model = BatchNormalization()(model)
+        # model = Dropout(0.5)(model)
 
         return model
 
