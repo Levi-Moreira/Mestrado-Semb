@@ -8,7 +8,7 @@ class Evaluator:
     file_per_channels = {
         2: "best_model_2.h5",
         13: "best_model_13.h5",
-        23: "best_model_23.h5"
+        18: "best_model_18.h5"
     }
 
     def __init__(self, channels, filename=None):
@@ -27,7 +27,7 @@ class Evaluator:
 
     def get_confusion_matrix(self):
         confusion_matrix = np.zeros((2, 2))
-        for index, path in enumerate(self.test_data_path):
+        for index, path in enumerate(self.test_data_path[:1000]):
 
             try:
                 data = self.data_producer.load_data_with_channels(path, self.channels)
@@ -49,9 +49,9 @@ class Evaluator:
         np.savetxt("stats_for_{}.txt".format(self.filename), self.confusion_matrix,
                    delimiter=",")
 
-for epoch in range(1, 31):
-    filename = "best_model_23_{:02d}.h5".format(epoch)
-    evaluator = Evaluator(23, filename)
+for epoch in range(5, 41):
+    filename = "best_model_18_{:02d}.h5".format(epoch)
+    evaluator = Evaluator(18, filename)
     evaluator.get_confusion_matrix()
     evaluator.save_stats()
 

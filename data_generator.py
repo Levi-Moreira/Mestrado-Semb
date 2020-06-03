@@ -6,7 +6,7 @@ from keras.utils import Sequence
 from sklearn import preprocessing
 
 from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, POSITIVE_PATH, NEGATIVE_PATH, TRAIN_SPLIT, \
-    WINDOW_SIZE, BATCH_SIZE, CLASSES, PATIENT_CODE
+    WINDOW_SIZE, BATCH_SIZE, CLASSES
 from edf_interfacer import NegativeEEGDatasetGenerator, PositiveEEGDatasetGenerator
 from frequency_splitter import butter_bandpass_filter
 
@@ -22,7 +22,7 @@ class DataGenerator(Sequence):
         self.paths = paths
         self.to_fit = to_fit
         self.batch_size = batch_size
-        self.dim = (1,  WINDOW_SIZE, self.channels)
+        self.dim = (1, WINDOW_SIZE, self.channels)
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -63,7 +63,7 @@ class DataGenerator(Sequence):
         # Generate data
         for i, path in enumerate(paths):
             # Store sample
-            X[i, ] = DataGenerator._load_data(path, self.channels, self.dim)
+            X[i,] = DataGenerator._load_data(path, self.channels, self.dim)
             # for index, band in enumerate(frequency_bands):
             #     low, high = band
             #     filtered = butter_bandpass_filter(DataGenerator._load_data(path, self.channels, self.dim), low, high,
@@ -83,8 +83,8 @@ class DataGenerator(Sequence):
     @staticmethod
     def scale(data, dim):
         # data = preprocessing.scale(data)
-        min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
-        data = min_max_scaler.fit_transform(data)
+        # min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-10, 10))
+        # data = min_max_scaler.fit_transform(data)
 
         return data.reshape(dim)
 
@@ -96,24 +96,31 @@ class DataGenerator(Sequence):
         for i, path in enumerate(paths):
             # Store sample
             if POSITIVE_FOLDER_NAME in path:
-                y[i,1] = 1.0
-                y[i,0] = 0.0
+                y[i, 1] = 1.0
+                y[i, 0] = 0.0
             else:
-                y[i,1] = 0.0
-                y[i,0] = 1.0
+                y[i, 1] = 0.0
+                y[i, 0] = 1.0
         return y
 
 
 class DataProducer:
-    def data_file_creation(self, channels):
-        self.channels = channels
-        negative_dataset_generator = NegativeEEGDatasetGenerator(PATIENT_CODE)
-        negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
-        print(len(negative_dataset_generator.chunks))
+    PATIENT_CODE = None
 
-        positive_dataset_generator = PositiveEEGDatasetGenerator(PATIENT_CODE)
-        positive_dataset_generator.save_chunks(POSITIVE_FOLDER_NAME)
-        print(len(positive_dataset_generator.chunks))
+    def data_file_creation(self, channels, patient):
+        self.channels = channels
+        self.PATIENT_CODE = patient
+        positive_dataset_generator = PositiveEEGDatasetGenerator(self.PATIENT_CODE)
+        # positive_dataset_generator.save_chunks(POSITIVE_FOLDER_NAME)
+        # positive_dataset_generator.save_extra_chunks(NEGATIVE_FOLDER_NAME)
+        print(positive_dataset_generator.total_chuncks)
+        print(positive_dataset_generator.total_extra_chunks)
+        del (positive_dataset_generator)
+
+        negative_dataset_generator = NegativeEEGDatasetGenerator(self.PATIENT_CODE)
+        # negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
+        print(negative_dataset_generator.total_chuncks)
+        del (negative_dataset_generator)
 
     def load_data_with_channels(self, path, channels):
         # data = np.loadtxt(path, delimiter=",")
@@ -128,7 +135,7 @@ class DataProducer:
         # Generate data
         for i, path in enumerate([path]):
             # Store sample
-            X[i,] =  DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels))
+            X[i,] = DataGenerator._load_data(path, channels, (1, WINDOW_SIZE, channels))
             # for index, band in enumerate(frequency_bands):
             #     low, high = band
             #
@@ -140,43 +147,43 @@ class DataProducer:
 
         return X
 
-    @staticmethod
-    def __apply_path(file):
-        if POSITIVE_FOLDER_NAME in file:
-            return os.path.join(POSITIVE_PATH, file)
-        else:
-            return os.path.join(NEGATIVE_PATH, file)
+    # @staticmethod
+    # def __apply_path(file):
+    #     if POSITIVE_FOLDER_NAME in file:
+    #         return os.path.join(POSITIVE_PATH, file)
+    #     else:
+    #         return os.path.join(NEGATIVE_PATH, file)
 
-    def __get_data_list(self):
-        BALACING_FACTOR = 5480
-        data = os.listdir(POSITIVE_PATH)[:BALACING_FACTOR] + os.listdir(NEGATIVE_PATH)[:BALACING_FACTOR]
-        return list(map(self.__apply_path, data))
+    # def __get_data_list(self):
+    #     BALACING_FACTOR = 5480
+    #     data = os.listdir(POSITIVE_PATH)[:BALACING_FACTOR] + os.listdir(NEGATIVE_PATH)[:BALACING_FACTOR]
+    #     return list(map(self.__apply_path, data))
 
-    def generate_files_split(self):
-        full_path_data = self.__get_data_list()
-        random.shuffle(full_path_data)
-        data_count = len(full_path_data)
-        split_point_for_test = int(data_count * 0.9)
-
-        all_data = full_path_data[0:split_point_for_test]
-        data_count = len(all_data)
-        test_data = full_path_data[split_point_for_test:]
-        split_point_val = int(data_count * TRAIN_SPLIT)
-
-        train_data = all_data[0:split_point_val]
-        val_data = all_data[split_point_val:]
-
-        with open('train.txt', 'w') as f:
-            for item in train_data:
-                f.write("%s\n" % item)
-
-        with open('val.txt', 'w') as f:
-            for item in val_data:
-                f.write("%s\n" % item)
-
-        with open('test.txt', 'w') as f:
-            for item in test_data:
-                f.write("%s\n" % item)
+    # def generate_files_split(self):
+    #     full_path_data = self.__get_data_list()
+    #     random.shuffle(full_path_data)
+    #     data_count = len(full_path_data)
+    #     split_point_for_test = int(data_count * 0.9)
+    #
+    #     all_data = full_path_data[0:split_point_for_test]
+    #     data_count = len(all_data)
+    #     test_data = full_path_data[split_point_for_test:]
+    #     split_point_val = int(data_count * TRAIN_SPLIT)
+    #
+    #     train_data = all_data[0:split_point_val]
+    #     val_data = all_data[split_point_val:]
+    #
+    #     with open('train.txt', 'w') as f:
+    #         for item in train_data:
+    #             f.write("%s\n" % item)
+    #
+    #     with open('val.txt', 'w') as f:
+    #         for item in val_data:
+    #             f.write("%s\n" % item)
+    #
+    #     with open('test.txt', 'w') as f:
+    #         for item in test_data:
+    #             f.write("%s\n" % item)
 
     def get_files_split(self):
         train_data = [line.rstrip('\n') for line in open('train.txt')]
@@ -201,19 +208,17 @@ class DataProducer:
 
 
 def generate_max_splits():
-    patients_to_train = [ "chb07", "chb08", "chb09", "chb10",
+    patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10",
                          "chb11", "chb12", "chb13", "chb14", "chb16", "chb17", "chb18", "chb19", "chb20",
                          "chb21", "chb22", "chb23", "chb24"]
 
     # patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10"]
-    maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556,
-            10660, 7924, 2881, 1746, 395, 3749, 3870, 2980, 3428,
-            2415, 2549, 5246, 5815]
-
-    # maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556]
+    # 0.075 and 5s
+    # maxs = [5488, 2117, 4949, 4826, 7186, 1395, 4180, 10805, 3452, 5556,
+    #         10660, 7924, 2881, 1746, 395, 3749, 3870, 2980, 3428,
+    #         2415, 2549, 5246, 5815]
 
     patients_to_test = ["chb15"]
-    maxs_to_test = [18001]
 
     def __apply_path(file):
         if POSITIVE_FOLDER_NAME in file:
@@ -231,6 +236,9 @@ def generate_max_splits():
                                        NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)
         neg_dir = os.listdir(NEGATIVE_PATH)
+        random.shuffle(neg_dir)
+        random.shuffle(pos_dir)
+        # neg_dir = neg_dir[:len(pos_dir)]
         data = set(pos_dir + neg_dir)
         full_path_data += list(map(__apply_path, data))
 
@@ -258,6 +266,7 @@ def generate_max_splits():
                                        NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)
         neg_dir = os.listdir(NEGATIVE_PATH)
+        random.shuffle(neg_dir)
         data = set(pos_dir + neg_dir)
         full_path_test_data += list(map(__apply_path, data))
 

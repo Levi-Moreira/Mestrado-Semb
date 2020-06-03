@@ -1,4 +1,8 @@
 from data_generator import DataProducer
 
-producer = DataProducer()
-producer.data_file_creation(23)
+patients = [ "chb24"]
+
+for p in patients:
+    producer = DataProducer()
+    producer.data_file_creation(18, p)
+    del (producer)

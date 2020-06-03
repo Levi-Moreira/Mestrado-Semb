@@ -11,7 +11,7 @@ from constants import WINDOW_SIZE
 class SeizeNet:
     def __init__(self, channels):
         self.channels = channels
-        self.mc = ModelCheckpoint('best_model_23_{epoch:02d}.h5', monitor='val_loss', mode='min',
+        self.mc = ModelCheckpoint('best_model_18_{epoch:02d}.h5', monitor='val_loss', mode='min',
                                   save_best_only=False)
 
         frequency_bands = [(4, 7), (7, 12), (12, 19), (19, 30), (30, 40)]
@@ -53,7 +53,7 @@ class SeizeNet:
         # model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         # model = Dropout(0.2)(model)
 
-        model = Conv2D(16, (8, 23), activation='relu', data_format='channels_first')(model)
+        model = Conv2D(16, (8, 18), activation='relu', data_format='channels_first')(model)
         model = BatchNormalization()(model)
         model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
@@ -87,12 +87,13 @@ class SeizeNet:
         self.model.summary()
 
     def build(self):
-        self.model.compile(optimizer=Adam(lr=0.00041),
+        self.model.compile(optimizer=Adam(),
                            loss='binary_crossentropy',
                            metrics=['accuracy'])
 
     def fit_data(self, train_generator, test_generator):
-        self.history = self.model.fit_generator(generator=train_generator, epochs=30,
+        self.history = self.model.fit_generator(generator=train_generator, epochs=50,
+                                                # workers=2,use_multiprocessing=True,
                                                 validation_data=test_generator, callbacks=[self.mc, ])
 
     def load_model(self, file):

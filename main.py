@@ -39,7 +39,7 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
-CHANNELS = 23
+CHANNELS = 18
 producer = DataProducer()
 # generate_max_splits()
 train_data, val_data = producer.get_files_split()
