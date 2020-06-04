@@ -5,7 +5,7 @@ import numpy as np
 import pyedflib
 
 from constants import OLD_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER, POSITIVE_SHIFT_WINDOW, NEGATIVE_FOLDER_NAME, \
-    POSITIVE_FOLDER_NAME
+    POSITIVE_FOLDER_NAME, MAIN_FOLDER_NAME
 
 
 class EEGReader:
@@ -90,7 +90,7 @@ class BaseDatabaseGenerator:
         self.explorer = CHBFolderExporer(subject)
 
     def __summary_builder(self):
-        file = open(os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", self.subject,
+        file = open(os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, self.subject,
                                                 "{}-summary.txt".format(self.subject)]), "r")
         file = str(file.read())
         file = file.split("\n\n")
@@ -117,14 +117,14 @@ class BaseDatabaseGenerator:
         self.summary = infos
 
     def save_chunks(self, folder_name):
-        file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", self.subject, folder_name])
+        file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, self.subject, folder_name])
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         for index, chunck in enumerate(self.chunks):
             np.save(os.path.join(file_path, "{}_{}".format(folder_name, datetime.timestamp(datetime.now()))), chunck)
 
     def save_extra_chunks(self, folder_name):
-        file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", self.subject, folder_name])
+        file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, self.subject, folder_name])
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         for index, chunck in enumerate(self.extra_chunks):
@@ -139,7 +139,7 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chuncks(self, subject):
         for file in self.negative_files:
-            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, subject, file])
             try:
                 data = self.reader.read_file(file_path)
             except OSError:
@@ -164,7 +164,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chunks(self, subject):
         for file in self.positive_files:
-            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, subject, file])
             if self.summary[file]["seizure_info"]:
                 previous_end_time_sample = 0
                 for info in self.summary[file]["seizure_info"]:

@@ -3,12 +3,9 @@ import random
 
 import numpy as np
 from keras.utils import Sequence
-from sklearn import preprocessing
 
-from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, POSITIVE_PATH, NEGATIVE_PATH, TRAIN_SPLIT, \
-    WINDOW_SIZE, BATCH_SIZE, CLASSES
+from constants import NEGATIVE_FOLDER_NAME, POSITIVE_FOLDER_NAME, WINDOW_SIZE, BATCH_SIZE, CLASSES, MAIN_FOLDER_NAME
 from edf_interfacer import NegativeEEGDatasetGenerator, PositiveEEGDatasetGenerator
-from frequency_splitter import butter_bandpass_filter
 
 
 class DataGenerator(Sequence):
@@ -209,7 +206,7 @@ class DataProducer:
 
 def generate_max_splits():
     patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10",
-                         "chb11", "chb12", "chb13", "chb14", "chb16", "chb17", "chb18", "chb19", "chb20",
+                         "chb11", "chb13", "chb12", "chb14", "chb16", "chb17", "chb18", "chb19", "chb20",
                          "chb21", "chb22", "chb23", "chb24"]
 
     # patients_to_train = ["chb01", "chb02", "chb03", "chb04", "chb05", "chb06", "chb07", "chb08", "chb09", "chb10"]
@@ -219,6 +216,7 @@ def generate_max_splits():
     #         2415, 2549, 5246, 5815]
 
     patients_to_test = ["chb15"]
+    patients_to_validate = ["chb15"]
 
     def __apply_path(file):
         if POSITIVE_FOLDER_NAME in file:
@@ -226,32 +224,50 @@ def generate_max_splits():
         else:
             return os.path.join(NEGATIVE_PATH, file)
 
-    full_path_data = []
+    full_path_train_data = []
     for index, patient in enumerate(patients_to_train):
         POSITIVE_PATH = os.path.join(os.getcwd(),
-                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                     *["data", MAIN_FOLDER_NAME, patient,
                                        POSITIVE_FOLDER_NAME])
         NEGATIVE_PATH = os.path.join(os.getcwd(),
-                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                     *["data", MAIN_FOLDER_NAME, patient,
                                        NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)
         neg_dir = os.listdir(NEGATIVE_PATH)
         random.shuffle(neg_dir)
         random.shuffle(pos_dir)
-        # neg_dir = neg_dir[:len(pos_dir)]
+        neg_dir = neg_dir[:len(pos_dir)]
         data = set(pos_dir + neg_dir)
-        full_path_data += list(map(__apply_path, data))
+        full_path_train_data += list(map(__apply_path, data))
 
-    random.shuffle(full_path_data)
-    data_count = len(full_path_data)
-    split_point_val = int(data_count * TRAIN_SPLIT)
-    train_data = full_path_data[0:split_point_val]
-    val_data = full_path_data[split_point_val:]
+    random.shuffle(full_path_train_data)
+    train_data = full_path_train_data
+    # data_count = len(full_path_data)
+    # split_point_val = int(data_count * TRAIN_SPLIT)
+    # train_data = full_path_data[0:split_point_val]
+    # val_data = full_path_data[split_point_val:]
 
     with open('train.txt', 'w') as f:
         for item in train_data:
             f.write("%s\n" % item)
 
+    full_path_val_data = []
+    for index, patient in enumerate(patients_to_validate):
+        POSITIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", MAIN_FOLDER_NAME, patient,
+                                       POSITIVE_FOLDER_NAME])
+        NEGATIVE_PATH = os.path.join(os.getcwd(),
+                                     *["data", MAIN_FOLDER_NAME, patient,
+                                       NEGATIVE_FOLDER_NAME])
+        pos_dir = os.listdir(POSITIVE_PATH)
+        neg_dir = os.listdir(NEGATIVE_PATH)
+        random.shuffle(neg_dir)
+        random.shuffle(pos_dir)
+        neg_dir = neg_dir[:len(pos_dir)]
+        data = set(pos_dir + neg_dir)
+        full_path_val_data += list(map(__apply_path, data))
+
+    val_data = full_path_val_data
     with open('val.txt', 'w') as f:
         for item in val_data:
             f.write("%s\n" % item)
@@ -259,10 +275,10 @@ def generate_max_splits():
     full_path_test_data = []
     for index, patient in enumerate(patients_to_test):
         POSITIVE_PATH = os.path.join(os.getcwd(),
-                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                     *["data", MAIN_FOLDER_NAME, patient,
                                        POSITIVE_FOLDER_NAME])
         NEGATIVE_PATH = os.path.join(os.getcwd(),
-                                     *["data", "chb-mit-scalp-eeg-database-1.0.0", patient,
+                                     *["data", MAIN_FOLDER_NAME, patient,
                                        NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)
         neg_dir = os.listdir(NEGATIVE_PATH)
