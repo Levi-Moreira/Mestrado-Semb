@@ -5,7 +5,7 @@ import numpy as np
 import pyedflib
 
 from constants import OLD_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER, POSITIVE_SHIFT_WINDOW, NEGATIVE_FOLDER_NAME, \
-    POSITIVE_FOLDER_NAME, MAIN_FOLDER_NAME
+    POSITIVE_FOLDER_NAME, MAIN_FOLDER_NAME, WINDOW_IN_SECONDS
 
 
 class EEGReader:
@@ -54,7 +54,6 @@ class EEGReader:
             result[output_index, :] = original_signal
             output_index += 1
 
-        from scipy.ndimage import gaussian_filter1d
         # normed = gaussian_filter1d(result, 5)
         normed = result
         del (result)
@@ -74,7 +73,8 @@ class EEGReader:
 class BaseDatabaseGenerator:
     CHUNCK_SIZE = WINDOW_SIZE
     # SHIFT_WINDOW = 0.075
-    SHIFT_WINDOW = POSITIVE_SHIFT_WINDOW
+    # SHIFT_WINDOW = int(POSITIVE_SHIFT_WINDOW * ORIGINAL_SAMPLE_RATE)
+    SHIFT_WINDOW = 1
     LIMIT_FILES = 2
     FILE_NAME_POSITION = 0
     NUMBER_OF_SEIZURE_POSITION = 3
@@ -139,7 +139,7 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chuncks(self, subject):
         for file in self.negative_files:
-            file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", subject, file])
             try:
                 data = self.reader.read_file(file_path)
             except OSError:
@@ -149,7 +149,7 @@ class NegativeEEGDatasetGenerator(BaseDatabaseGenerator):
             window_start = 0
             while (window_start + self.CHUNCK_SIZE) < data.shape[1]:
                 self.chunks.append(data[:, window_start:window_start + self.CHUNCK_SIZE])
-                window_start += int(5 * self.reader.ORIGINAL_SAMPLE_RATE)
+                window_start += int(WINDOW_IN_SECONDS * self.reader.ORIGINAL_SAMPLE_RATE)
 
             self.save_chunks(NEGATIVE_FOLDER_NAME)
             self.total_chuncks += len(self.chunks)
@@ -164,7 +164,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
 
     def __generate_data_chunks(self, subject):
         for file in self.positive_files:
-            file_path = os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, subject, file])
+            file_path = os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", subject, file])
             if self.summary[file]["seizure_info"]:
                 previous_end_time_sample = 0
                 for info in self.summary[file]["seizure_info"]:
@@ -195,7 +195,8 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
         window_start = 0
         while (window_start + self.CHUNCK_SIZE) < data.shape[1]:
             chuncks.append(data[:, window_start:window_start + self.CHUNCK_SIZE])
-            window_start += int(self.SHIFT_WINDOW * self.reader.ORIGINAL_SAMPLE_RATE)
+            # window_start += int(self.SHIFT_WINDOW * self.reader.ORIGINAL_SAMPLE_RATE)
+            window_start += self.SHIFT_WINDOW
         return chuncks
 
     # data[:,0:1280
@@ -206,7 +207,7 @@ class PositiveEEGDatasetGenerator(BaseDatabaseGenerator):
         window_start = 0
         while (window_start + self.CHUNCK_SIZE) < data.shape[1]:
             chunks.append(data[:, window_start:window_start + self.CHUNCK_SIZE])
-            window_start += int(5 * self.reader.ORIGINAL_SAMPLE_RATE)
+            window_start += int(WINDOW_IN_SECONDS * self.reader.ORIGINAL_SAMPLE_RATE)
         return chunks
 
 

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="PublishConfigData">
     <serverData>
-      <paths name="ubuntu@wattpanel.com:22">
+      <paths name="semb">
         <serverdata>
           <mappings>
             <mapping deploy="/semb/home/ubuntu/Mestrado-Semb" local="$PROJECT_DIR$" />

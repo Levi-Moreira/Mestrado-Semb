@@ -226,6 +226,7 @@ def generate_max_splits():
 
     full_path_train_data = []
     for index, patient in enumerate(patients_to_train):
+        print("Adding patient {}".format(patient))
         POSITIVE_PATH = os.path.join(os.getcwd(),
                                      *["data", MAIN_FOLDER_NAME, patient,
                                        POSITIVE_FOLDER_NAME])
