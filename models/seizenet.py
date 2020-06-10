@@ -57,14 +57,14 @@ class SeizeNet:
         model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
 
-        model = Reshape((1, 626, 20))(model)
+        model = Reshape((1, 242, 20))(model)
 
         model = Conv2D(40, (10, 20), activation='elu', data_format='channels_first')(model)
         model = BatchNormalization()(model)
         model = MaxPooling2D((2, 1), data_format='channels_first')(model)
         model = Dropout(0.2)(model)
 
-        model = Reshape((1, 308, 40))(model)
+        model = Reshape((1, 116, 40))(model)
 
         model = Conv2D(80, (10, 40), activation='elu', data_format='channels_first')(model)
         model = BatchNormalization()(model)
