@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 import pyedflib
 
-from constants import OLD_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER, POSITIVE_SHIFT_WINDOW, NEGATIVE_FOLDER_NAME, \
+from constants import OLD_SAMPLE_RATE, WINDOW_SIZE, EEG_SIGNAL_NUMBER, NEGATIVE_FOLDER_NAME, \
     POSITIVE_FOLDER_NAME, MAIN_FOLDER_NAME, WINDOW_IN_SECONDS
 
 
@@ -90,7 +90,7 @@ class BaseDatabaseGenerator:
         self.explorer = CHBFolderExporer(subject)
 
     def __summary_builder(self):
-        file = open(os.path.join(os.getcwd(), *["data", MAIN_FOLDER_NAME, self.subject,
+        file = open(os.path.join(os.getcwd(), *["data", "chb-mit-scalp-eeg-database-1.0.0", self.subject,
                                                 "{}-summary.txt".format(self.subject)]), "r")
         file = str(file.read())
         file = file.split("\n\n")

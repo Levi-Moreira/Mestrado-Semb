@@ -3,7 +3,7 @@ import os
 POSITIVE_FOLDER_NAME = "positive"
 NEGATIVE_FOLDER_NAME = "negative"
 PATIENT_CODE = "chb20"
-MAIN_FOLDER_NAME = "chb-mit-scalp-eeg-database-1.0.0-5xshift0075"
+MAIN_FOLDER_NAME = "chb-mit-scalp-eeg-database-1.0.0-2xshift1"
 POSITIVE_PATH = os.path.join(os.getcwd(),
                              *["data", MAIN_FOLDER_NAME, PATIENT_CODE, POSITIVE_FOLDER_NAME])
 NEGATIVE_PATH = os.path.join(os.getcwd(),

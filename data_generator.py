@@ -110,13 +110,13 @@ class DataProducer:
         positive_dataset_generator = PositiveEEGDatasetGenerator(self.PATIENT_CODE)
         # positive_dataset_generator.save_chunks(POSITIVE_FOLDER_NAME)
         # positive_dataset_generator.save_extra_chunks(NEGATIVE_FOLDER_NAME)
-        print(positive_dataset_generator.total_chuncks)
-        print(positive_dataset_generator.total_extra_chunks)
+        print("Created positive chuncks {}".format(positive_dataset_generator.total_chuncks))
+        print("Created negative chuncks {}".format(positive_dataset_generator.total_extra_chunks))
         del (positive_dataset_generator)
 
         negative_dataset_generator = NegativeEEGDatasetGenerator(self.PATIENT_CODE)
         # negative_dataset_generator.save_chunks(NEGATIVE_FOLDER_NAME)
-        print(negative_dataset_generator.total_chuncks)
+        print("Created negative chuncks {}".format(negative_dataset_generator.total_chuncks))
         del (negative_dataset_generator)
 
     def load_data_with_channels(self, path, channels):
