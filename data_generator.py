@@ -235,14 +235,24 @@ def generate_max_splits():
                                        NEGATIVE_FOLDER_NAME])
         pos_dir = os.listdir(POSITIVE_PATH)
         neg_dir = os.listdir(NEGATIVE_PATH)
+        print("Positive: {}. Negative: {}".format(len(pos_dir), len(neg_dir)))
         random.shuffle(neg_dir)
         random.shuffle(pos_dir)
         neg_dir = neg_dir[:len(pos_dir)]
         data = set(pos_dir + neg_dir)
+        print("Total added: {}".format(len(data)))
+        print("")
         full_path_train_data += list(map(__apply_path, data))
 
     random.shuffle(full_path_train_data)
     train_data = full_path_train_data
+
+    pos_count = len(list(filter(lambda x: "positive" in x, train_data)))
+    negative_count = len(list(filter(lambda x: "negative" in x, train_data)))
+
+    print("Data split")
+    print("Positive: {}".format(pos_count))
+    print("Negative: {}".format(negative_count))
     # data_count = len(full_path_data)
     # split_point_val = int(data_count * TRAIN_SPLIT)
     # train_data = full_path_data[0:split_point_val]
@@ -264,7 +274,9 @@ def generate_max_splits():
         neg_dir = os.listdir(NEGATIVE_PATH)
         random.shuffle(neg_dir)
         random.shuffle(pos_dir)
-        neg_dir = neg_dir[:len(pos_dir)]
+        min_size = min(len(pos_dir), len(neg_dir))
+        neg_dir = neg_dir[:min_size]
+        pos_dir = pos_dir[:min_size]
         data = set(pos_dir + neg_dir)
         full_path_val_data += list(map(__apply_path, data))
 
