@@ -1,3 +1,3 @@
-from data_generator import generate_max_splits
+from dataset.splitter import generate_max_splits
 
 generate_max_splits()
