@@ -1,6 +1,8 @@
 import numpy as np
 
-from data_generator import DataProducer
+from dataset.constants import POSITIVE_FOLDER_NAME
+from interface.constants import WINDOW_SIZE
+from models.generator import DataGenerator
 from models.seizenet import SeizeNet
 
 
@@ -20,9 +22,8 @@ class Evaluator:
             self.filename = self.file_per_channels[channels]
         self.seize_net.load_model(self.filename)
         self.confusion_matrix = None
-        self.data_producer = DataProducer()
-        self.test_data_path = self.data_producer.get_test_files()
-        self.test_data_labels = self.data_producer.build_labels(self.test_data_path)
+        self.test_data_path = get_test_files()
+        self.test_data_labels = build_labels(self.test_data_path)
         self.outputs = []
 
     def get_confusion_matrix(self):
@@ -30,7 +31,7 @@ class Evaluator:
         for index, path in enumerate(self.test_data_path[:1000]):
 
             try:
-                data = self.data_producer.load_data_with_channels(path, self.channels)
+                data = load_data_with_channels(path, self.channels)
             except Exception as e:
                 raise e
             # print("Loading data #{}".format(index + 1))
@@ -49,24 +50,37 @@ class Evaluator:
         np.savetxt("stats_for_{}.txt".format(self.filename), self.confusion_matrix,
                    delimiter=",")
 
-for epoch in range(5, 41):
+
+for epoch in range(1, 41):
     filename = "best_model_18_{:02d}.h5".format(epoch)
     evaluator = Evaluator(18, filename)
     evaluator.get_confusion_matrix()
     evaluator.save_stats()
 
-# import tensorflow as tf
-#
-# converter = tf.lite.TFLiteConverter.from_keras_model_file('best_model_38.h5')
-# tfmodel = converter.convert()
-# open("model38.tflite", "wb").write(tfmodel)
 
-# import os
-#
-# os.mkdir("test")
-# data_generator = DataProducer()
-# file_list = data_generator.get_test_files()
-#
-# for file in file_list:
-#     filename = file.split("/")[-1]
-#     copyfile(file, "test/" + filename)
+def load_data_with_channels(path, channels):
+    X = np.empty((1, channels, WINDOW_SIZE, 1))
+
+    # Generate data
+    for i, path in enumerate([path]):
+        # Store sample
+        X[i,] = _load_data(channels, (channels, WINDOW_SIZE, 1))
+
+    return X
+
+
+def get_test_files():
+    return [line.rstrip('\n') for line in open('test.txt')]
+
+
+def build_labels(files):
+    y = np.empty((len(files), 1), dtype=int)
+
+    # Generate data
+    for i, path in enumerate(files):
+        # Store sample
+        if POSITIVE_FOLDER_NAME in path:
+            y[i,] = 1
+        else:
+            y[i,] = 0
+    return y
