@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
+from sklearn.preprocessing import minmax_scale
 
 from dataset.constants import EEG_SIGNAL_NUMBER, DATASET_SAMPLE_RATE
 from edf.constants import CHANNELS_NAMES, CUT_OFF_LOWER, CUT_OFF_HIGHER
@@ -14,6 +16,15 @@ def filter_data(input_signal):
     from frequency_splitter import butter_bandpass_filter
     filtered = butter_bandpass_filter(input_signal, CUT_OFF_LOWER, CUT_OFF_HIGHER, DATASET_SAMPLE_RATE)
     return filtered
+
+
+def get_channel_conf(eeg_file):
+    channel_labels = eeg_file.getSignalLabels()
+    if "LE" in channel_labels[0]:
+        return "LE"
+    if "REF" in channel_labels[0]:
+        return "REF"
+    return "DIFF"
 
 
 def verify_integrity(eeg_file):
@@ -41,3 +52,11 @@ def read_data(eeg_file, channels_indexes):
         result[output_index, :] = original_signal
         output_index += 1
     return result
+
+
+def min_max_scale(data):
+    return minmax_scale(data, feature_range=(-1, 1))
+
+
+def guassian_smooth(data, order=1):
+    return gaussian_filter1d(data, order)

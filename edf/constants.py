@@ -17,5 +17,14 @@ CHANNELS_NAMES = ['FP1-F7',
                   'FZ-CZ',
                   'CZ-PZ']
 
+
+def le_channel_transformer(name):
+    return "EEG {}-LE".format(name)
+
+
+def ref_channel_transformer(name):
+    return "EEG {}-REF".format(name)
+
+
 CUT_OFF_LOWER = 4
-CUT_OFF_HIGHER = 127
+CUT_OFF_HIGHER = 40

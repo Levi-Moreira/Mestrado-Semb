@@ -19,3 +19,6 @@ DATA_SUBFOLDER_LOCATION = "data"
 
 EDF_FILE_MARKER = ".edf"
 SEIZURE_FILE_MARKER = ".seizures"
+
+TUH_SEIZURE_FILES_LIST = "/media/levi/ELEMENTS/tuh_eeg_seizure/v1.5.1/_DOCS/05_files_with_seizures.list"
+HARD_DISK_LOCATION = "/media/levi/ELEMENTS/"

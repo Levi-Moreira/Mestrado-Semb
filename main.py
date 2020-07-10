@@ -1,16 +1,24 @@
+from keras import backend as K
+import tensorflow as tf
 from dataset.splitter import get_files_split
 from models.generator import DataGenerator
 
 from models.seizenet import SeizeNet
 
+
 CHANNELS = 18
 
 
 def device_info():
+    K.clear_session()
+    tf.compat.v1.reset_default_graph()
+
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     from tensorflow.python.client import device_lib
     print(device_lib.list_local_devices())
+
+    # tf.compat.v1.disable_eager_execution()
 
 
 def start():
