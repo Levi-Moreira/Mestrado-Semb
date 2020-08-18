@@ -1,19 +1,44 @@
-from torch.nn import Sequential, Conv2d, BatchNorm2d, ELU, MaxPool2d, Dropout
+from keras import applications
+from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, GlobalAveragePooling2D
+from tensorflow.python.keras.models import Model, Sequential
 
-model = Sequential()
-model.add_module("conv_time", Conv2d(1, 20, (10, 1), stride=1, ))
-model.add_module("conv_spat", Conv2d(20, 20, (1, 18), stride=(1, 1), bias=False, ))
-model.add_module("bnorm_1", BatchNorm2d(20, momentum=0.1, affine=True, eps=1e-5, ))
-model.add_module("conv_1_nonlin", ELU())
-model.add_module("pool_1", MaxPool2d(kernel_size=(2, 1), stride=(2, 1)))
+from models.generator import DataGenerator
 
-model.add_module("drop_2", Dropout(p=0.5))
-model.add_module("conv_2", Conv2d(20, 40, (10, 20), stride=(1, 1), bias=False, ))
-model.add_module("bnorm_2", BatchNorm2d(20, momentum=0.1, affine=True, eps=1e-5, ))
-model.add_module("conv_2_nonlin", ELU())
-model.add_module("pool_2", MaxPool2d(kernel_size=(2, 1), stride=(2, 1)))
 
-model.add_module("drop_3", Dropout(p=0.5))
-model.add_module("conv_3", Conv2d(40, 80, (10, 40), stride=(1, 1), bias=True, ))
-model.add_module("bnorm_3", BatchNorm2d(20, momentum=0.1, affine=True, eps=1e-5, ))
-model.add_module("conv_3_nonlin", ELU())
+def get_files_split():
+    train_data = [line.rstrip('\n') for line in open('/home/levi/PycharmProjects/Mestrado-Semb/train.txt')]
+    val_data = [line.rstrip('\n') for line in open('/home/levi/PycharmProjects/Mestrado-Semb/val.txt')]
+    return train_data, val_data
+
+
+def create_base_model():
+    base_model = applications.VGG16(weights='imagenet',
+                                    include_top=False,
+                                    input_shape=(224, 224, 3))
+
+    base_model.trainable = False
+    return base_model
+
+
+from keras import backend as K
+
+K.clear_session()
+
+base_model = create_base_model()
+custom_model = Sequential([
+    base_model,
+    Conv2D(32, 3, activation='relu'),
+    Dropout(0.2),
+    GlobalAveragePooling2D(),
+    Dense(1, activation='sigmoid')
+])
+
+custom_model.compile(loss='binary_crossentropy',
+                     optimizer='adam',
+                     metrics=['accuracy'])
+custom_model.summary()
+train_data, val_data = get_files_split()
+train_data_generator = DataGenerator(train_data, 18)
+val_data_generator = DataGenerator(val_data, 18)
+
+custom_model.fit(train_data_generator, validation_data=val_data_generator, epochs=100)

@@ -1,5 +1,3 @@
-from constants import WORKING_DIR
-
 POSITIVE_FOLDER_NAME = "positive"
 NEGATIVE_FOLDER_NAME = "negative"
 
@@ -13,6 +11,8 @@ ON_EXTERNAL_HARD_DISK = True
 if ON_EXTERNAL_HARD_DISK:
     ORIGINAL_DATASET_LOCATION = "/media/levi/ELEMENTS/Mestrado"
 else:
+    from constants import WORKING_DIR
+
     ORIGINAL_DATASET_LOCATION = WORKING_DIR
 
 DATA_SUBFOLDER_LOCATION = "data"

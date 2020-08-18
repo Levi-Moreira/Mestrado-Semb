@@ -79,11 +79,11 @@ class EEGReader:
         # filtered_result = filter_data(result)
         # plot_signal(filtered_result[0], highlight=(start, end))
 
-        # normalized_result = normalize(result)
+        normalized_result = normalize(result)
         # plot_signal(normalized_result[0], highlight=(start, end))
         # where_are_NaNs = np.isnan(normalized_result)
         # normalized_result[where_are_NaNs] = 0
-        return result.astype(dtype=np.float32)
+        return normalized_result.astype(dtype=np.float32)
 
     def read_file_in_interval(self, file_path, start, end):
         data = self.read_file(file_path, start, end)

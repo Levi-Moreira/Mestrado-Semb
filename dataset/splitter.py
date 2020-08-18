@@ -48,8 +48,8 @@ def split(final_file, patients):
         negative_path = os.path.join(WORKING_DIR,
                                      DATA_SUBFOLDER_LOCATION, SEGMENTED_DATA_FOLDER, patient,
                                      NEGATIVE_FOLDER_NAME)
-        positive_files = os.listdir(positive_path)
-        negative_files = os.listdir(negative_path)
+        positive_files = list(filter(lambda x: "png"  in x, os.listdir(positive_path)))
+        negative_files = list(filter(lambda x: "png"  in x, os.listdir(negative_path)))
         print("Positive: {}. Negative: {}".format(len(positive_files), len(negative_files)))
         random.shuffle(negative_files)
         random.shuffle(positive_files)
