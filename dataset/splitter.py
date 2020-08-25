@@ -48,8 +48,8 @@ def split(final_file, patients):
         negative_path = os.path.join(WORKING_DIR,
                                      DATA_SUBFOLDER_LOCATION, SEGMENTED_DATA_FOLDER, patient,
                                      NEGATIVE_FOLDER_NAME)
-        positive_files = list(filter(lambda x: "png"  in x, os.listdir(positive_path)))
-        negative_files = list(filter(lambda x: "png"  in x, os.listdir(negative_path)))
+        positive_files = os.listdir(positive_path)
+        negative_files = os.listdir(negative_path)
         print("Positive: {}. Negative: {}".format(len(positive_files), len(negative_files)))
         random.shuffle(negative_files)
         random.shuffle(positive_files)
@@ -73,12 +73,19 @@ def split(final_file, patients):
     print("Negative: {}".format(negative_count))
     print("")
 
+    split = int(len(full_path_data) * 0.95)
+    train = full_path_data[:split]
+    validation = full_path_data[split:]
     with open(final_file, 'w') as f:
-        for item in full_path_data:
+        for item in train:
+            f.write("%s\n" % item)
+
+    with open('val.txt', 'w') as f:
+        for item in validation:
             f.write("%s\n" % item)
 
 
 def generate_max_splits():
     generate_train_set(PATIENTS_TO_TRAIN)
-    generate_validation_set(PATIENTS_TO_VALIDATE)
-    generate_test_set(PATIENTS_TO_TEST)
+    # generate_validation_set(PATIENTS_TO_VALIDATE)
+    # generate_test_set(PATIENTS_TO_TEST)

@@ -16,7 +16,7 @@ def _load_data(path, channels, dim):
 
 def load_image(path):
     img = load_img(path, target_size=(224, 224))
-    return img_to_array(img)/255
+    return img_to_array(img) / 255
 
 
 class DataGenerator(Sequence):
@@ -30,7 +30,7 @@ class DataGenerator(Sequence):
         self.paths = paths
         self.to_fit = to_fit
         self.batch_size = batch_size
-        self.dim = (224,224,3)
+        self.dim = (1, WINDOW_SIZE, self.channels)
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -68,17 +68,17 @@ class DataGenerator(Sequence):
         # Generate data
         for i, path in enumerate(paths):
             # Store sample
-            X[i,] = load_image(path)
+            X[i,] = _load_data(path, self.channels, self.dim)
         return X
 
     def _generate_y(self, paths):
-        y = np.empty((self.batch_size, 1), dtype=int)
+        y = np.empty((self.batch_size, 2), dtype=int)
 
         for i, path in enumerate(paths):
             if POSITIVE_FOLDER_NAME in path:
-                y[i] = 1.0
-                # y[i] = 0.0
+                y[i, 1] = 1.0
+                y[i, 0] = 0.0
             else:
-                y[i] = 0.0
-                # y[i, 0] = 1.0
+                y[i, 1] = 0.0
+                y[i, 0] = 1.0
         return y

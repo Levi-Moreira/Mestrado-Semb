@@ -35,8 +35,10 @@ negative = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/train/n
 
 all_data = [map_full_path(p, True) for p in positive + negative]
 random.shuffle(all_data)
-X = np.empty((len(positive) + len(negative), 4240), dtype=np.float16)
-Y = np.empty((len(positive) + len(negative)), dtype=np.float16)
+# all_data = all_data[:int(len(all_data))]
+
+X = np.empty((len(all_data), 896), dtype=np.float16)
+Y = np.empty((len(all_data)), dtype=np.float16)
 load(X, Y, all_data)
 
 svclassifier = SVC(kernel='rbf', verbose=True)
@@ -47,7 +49,7 @@ negative_test = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/te
 
 all_test_data = [map_full_path(p, False) for p in positive_test + negative_test]
 random.shuffle(all_test_data)
-X_t = np.empty((len(all_test_data), 4240), dtype=np.float16)
+X_t = np.empty((len(all_test_data), 896), dtype=np.float16)
 Y_t = np.empty((len(all_test_data)), dtype=np.float16)
 load(X_t, Y_t, all_test_data)
 y_pred = svclassifier.predict(X_t)
