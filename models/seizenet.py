@@ -33,10 +33,10 @@ class SeizeNet:
 
         self.reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                                            patience=20, min_lr=0.00001)
-        self.model = self.build_model()
+        self.model = self.build_model_functional(input)
         print("STARTING CREATING MODEL:")
         print('best_model_{}.h5'.format(self.channels))
-        self.build_model()
+        # self.build_model()
 
     def build_model(self):
         self.model = Sequential()
@@ -73,6 +73,32 @@ class SeizeNet:
 
         return self.model
 
+    def build_model_functional(self, input_tensor):
+        model = Sequential()
+        model.add(Input(shape=(self.channels, WINDOW_SIZE, 1)))
+        model.add(Conv2D(20, kernel_size=(1, 10), activation='elu'))
+
+        model.add(Conv2D(20, (18, 20), activation='elu'))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D((1, 2)))
+        model.add(Dropout(0.2))
+        model.add(Reshape((20, 242, 1)))
+
+        model.add(Conv2D(40, (20, 10), activation='elu'))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D((1, 2)))
+        model.add(Dropout(0.2))
+        model.add(Reshape((40, 116, 1)))
+
+        model.add(Conv2D(80, (40, 10), activation='elu'))
+        model.add(BatchNormalization())
+
+        model.add(Flatten())
+        model.add(Dropout(0.5))
+        model.add(Dense(2, activation='softmax'))
+
+        return model
+
     def plot_model_arch(self):
         plot_model(
             self.model,
@@ -97,9 +123,9 @@ class SeizeNet:
                                     ])
 
     def fit_data(self, train_generator, test_generator):
-        self.history = self.model.fit(train_generator, epochs=100,
+        self.history = self.model.fit(train_generator, epochs=50,
                                       validation_data=test_generator,
-                                      callbacks=[self.mc, self.reduce_lr, self.tensorboard_callback])
+                                      callbacks=[self.reduce_lr, self.tensorboard_callback])
 
     def load_model(self, file):
         print("Loading model from file{}".format(file))

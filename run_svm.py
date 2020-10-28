@@ -17,7 +17,7 @@ def load(X, Y, data):
 
 def map_full_path(path, is_train):
     initial_path = "/home/levi/PycharmProjects/Mestrado-Semb/data/svm/"
-    if is_train:
+    if "chb15" not in path:
         secondary = "train/"
     else:
         secondary = "test/"
@@ -33,7 +33,15 @@ def map_full_path(path, is_train):
 positive = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/train/positive")
 negative = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/train/negative")
 
-all_data = [map_full_path(p, True) for p in positive + negative]
+positive_test = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/test/positive")
+negative_test = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/test/negative")
+
+# post_neg = positive + negative + positive_test + negative_test
+# random.shuffle(post_neg)
+
+# split = int(len(post_neg) * 0.7)
+all_data = positive + negative
+all_data = [map_full_path(p, True) for p in all_data]
 random.shuffle(all_data)
 # all_data = all_data[:int(len(all_data))]
 
@@ -44,10 +52,8 @@ load(X, Y, all_data)
 svclassifier = SVC(kernel='rbf', verbose=True)
 svclassifier.fit(X, Y)
 
-positive_test = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/test/positive")
-negative_test = os.listdir("/home/levi/PycharmProjects/Mestrado-Semb/data/svm/test/negative")
-
-all_test_data = [map_full_path(p, False) for p in positive_test + negative_test]
+all_test_data = positive_test + negative_test
+all_test_data = [map_full_path(p, False) for p in all_test_data]
 random.shuffle(all_test_data)
 X_t = np.empty((len(all_test_data), 896), dtype=np.float16)
 Y_t = np.empty((len(all_test_data)), dtype=np.float16)

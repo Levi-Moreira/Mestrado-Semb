@@ -54,9 +54,9 @@ def split(final_file, patients):
         random.shuffle(negative_files)
         random.shuffle(positive_files)
 
-        min_size = min(len(positive_files), len(negative_files), MAX_DATA_SIZE)
-        negative_files = negative_files[:min_size]
-        positive_files = positive_files[:min_size]
+        # min_size = min(len(positive_files), len(negative_files), MAX_DATA_SIZE)
+        # negative_files = negative_files[:min_size]
+        # positive_files = positive_files[:min_size]
 
         data = set(positive_files + negative_files)
         print("Total added: {}".format(len(data)))
@@ -73,19 +73,19 @@ def split(final_file, patients):
     print("Negative: {}".format(negative_count))
     print("")
 
-    split = int(len(full_path_data) * 0.95)
-    train = full_path_data[:split]
-    validation = full_path_data[split:]
+    # split = int(len(full_path_data) * 0.95)
+    # train = full_path_data[:split]
+    # validation = full_path_data[split:]
     with open(final_file, 'w') as f:
-        for item in train:
+        for item in full_path_data:
             f.write("%s\n" % item)
-
-    with open('val.txt', 'w') as f:
-        for item in validation:
-            f.write("%s\n" % item)
+    #
+    # with open('val.txt', 'w') as f:
+    #     for item in validation:
+    #         f.write("%s\n" % item)
 
 
 def generate_max_splits():
     generate_train_set(PATIENTS_TO_TRAIN)
-    # generate_validation_set(PATIENTS_TO_VALIDATE)
-    # generate_test_set(PATIENTS_TO_TEST)
+    generate_validation_set(PATIENTS_TO_VALIDATE)
+    generate_test_set(PATIENTS_TO_TEST)

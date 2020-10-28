@@ -30,7 +30,7 @@ class DataGenerator(Sequence):
         self.paths = paths
         self.to_fit = to_fit
         self.batch_size = batch_size
-        self.dim = (1, WINDOW_SIZE, self.channels)
+        self.dim = (self.channels, WINDOW_SIZE, 1)
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
