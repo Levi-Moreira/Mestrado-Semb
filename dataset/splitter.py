@@ -55,8 +55,8 @@ def split(final_file, patients):
         random.shuffle(positive_files)
 
         # min_size = min(len(positive_files), len(negative_files), MAX_DATA_SIZE)
-        # negative_files = negative_files[:min_size]
-        # positive_files = positive_files[:min_size]
+        # negative_files = negative_files[:len(positive_files)]
+
 
         data = set(positive_files + negative_files)
         print("Total added: {}".format(len(data)))

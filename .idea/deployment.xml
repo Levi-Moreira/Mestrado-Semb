@@ -5,7 +5,7 @@
       <paths name="semb">
         <serverdata>
           <mappings>
-            <mapping deploy="/semb/home/ubuntu/Mestrado-Semb" local="$PROJECT_DIR$" />
+            <mapping deploy="/semb/project" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
