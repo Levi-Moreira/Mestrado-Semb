@@ -22,36 +22,36 @@ class CHBPositiveEEGDatasetGenerator(CHBBaseDatabaseGenerator):
                 print("Dropped file: {}".format(file))
                 continue
 
-            self.chunks = get_positive_chunks_from_data(data)
-            # if self.summary[file][SEIZURE_INFO_KEY]:
-            #     previous_end_time_sample = 0
-            #     for index, info in enumerate(self.summary[file][SEIZURE_INFO_KEY]):
-            #         start_sample = info[START_TIME_KEY] * DATASET_SAMPLE_RATE
-            #         end_sample = info[END_TIME_KEY] * DATASET_SAMPLE_RATE
-            #         try:
-            #             data = self.reader.read_file_in_interval(file_path, start_sample, end_sample)
-            #             negative_data = self.reader.read_file_in_interval(file_path, previous_end_time_sample,
-            #                                                               start_sample)
-            #         except OSError as e:
-            #             print("Dropped file: {}".format(file))
-            #             continue
-            #         finally:
-            #             previous_end_time_sample = end_sample
-            #         cc = get_positive_chunks_from_data(data)
-            #         nn = get_negative_chunks_from_data(negative_data)
-            #
-            #         # last seizure, retrieve negatives from after it
-            #         if index == len(self.summary[file][SEIZURE_INFO_KEY]) - 1:
-            #             negative_data = self.reader.read_file_in_interval(file_path, previous_end_time_sample,
-            #                                                               None)
-            #             cn = get_negative_chunks_from_data(negative_data)
-            #             self.extra_chunks.extend(cn)
-            #
-            #         self.chunks.extend(cc)
-            #         self.extra_chunks.extend(nn)
+            # self.chunks = get_positive_chunks_from_data(data)
+            if self.summary[file][SEIZURE_INFO_KEY]:
+                previous_end_time_sample = 0
+                for index, info in enumerate(self.summary[file][SEIZURE_INFO_KEY]):
+                    start_sample = info[START_TIME_KEY] * DATASET_SAMPLE_RATE
+                    end_sample = info[END_TIME_KEY] * DATASET_SAMPLE_RATE
+                    try:
+                        data = self.reader.read_file_in_interval(file_path, start_sample, end_sample)
+                        negative_data = self.reader.read_file_in_interval(file_path, previous_end_time_sample,
+                                                                          start_sample)
+                    except OSError as e:
+                        print("Dropped file: {}".format(file))
+                        continue
+                    finally:
+                        previous_end_time_sample = end_sample
+                    cc = get_positive_chunks_from_data(data)
+                    nn = get_negative_chunks_from_data(negative_data)
+
+                    # last seizure, retrieve negatives from after it
+                    if index == len(self.summary[file][SEIZURE_INFO_KEY]) - 1:
+                        negative_data = self.reader.read_file_in_interval(file_path, previous_end_time_sample,
+                                                                          None)
+                        cn = get_negative_chunks_from_data(negative_data)
+                        self.extra_chunks.extend(cn)
+
+                    self.chunks.extend(cc)
+                    self.extra_chunks.extend(nn)
             self.save_chunks(POSITIVE_FOLDER_NAME, file)
-            # self.save_extra_chunks(NEGATIVE_FOLDER_NAME, file)
+            self.save_extra_chunks(NEGATIVE_FOLDER_NAME, file)
             self.total_chunks += len(self.chunks)
-            # self.total_extra_chunks += len(self.extra_chunks)
+            self.total_extra_chunks += len(self.extra_chunks)
             self.chunks.clear()
             self.extra_chunks.clear()

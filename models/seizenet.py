@@ -1,8 +1,11 @@
+import json
+
 from keras import Input, Sequential
 from keras.applications import ResNet50
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Reshape
 from keras.optimizers import Adam
 from keras.utils import plot_model
+from tensorflow.python.keras.callbacks import ModelCheckpoint
 
 from interface.constants import WINDOW_SIZE
 
@@ -16,18 +19,19 @@ from interface.constants import WINDOW_SIZE
 
 
 class SeizeNet:
-    def __init__(self, channels):
+    def __init__(self, channels, patient):
+        self.patient = patient
         self.channels = channels
-        # self.mc = ModelCheckpoint('best_model_{epoch:02d}.h5', monitor='val_loss', mode='min',
-        #                           save_best_only=True)
+        self.mc = ModelCheckpoint(patient + 'best_model_{epoch:02d}.h5', monitor='val_loss', mode='min',
+                                  save_best_only=True)
         # log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         # self.tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
         #
         # self.reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
         #                                    patience=20, min_lr=0.00001)
-        self.model = self.build_resnet()
+        self.model = self.build_model()
         print("STARTING CREATING MODEL:")
-        print('best_model_{}.h5'.format(self.channels))
+        print(patient + 'best_model_{}.h5'.format(self.channels))
         # self.build_model()
 
     def build_resnet(self):
@@ -116,8 +120,11 @@ class SeizeNet:
                            metrics=['accuracy'])
 
     def fit_data(self, train_generator, test_generator):
-        self.history = self.model.fit(train_generator, epochs=90,
-                                      validation_data=test_generator, workers=10)
+        self.history = self.model.fit(train_generator, epochs=100,
+                                      validation_data=test_generator, workers=2, callbacks=[self.mc])
+
+        with open(self.patient + 'trainHistoryDict.txt', 'w') as file_pi:
+            json.dump(self.history.history, file_pi)
 
     def load_model(self, file):
         print("Loading model from file{}".format(file))

@@ -14,26 +14,26 @@ def __apply_path(file, positive_path, negative_path):
         return os.path.join(negative_path, file)
 
 
-def generate_train_set(patients_to_train):
-    split('train.txt', patients_to_train)
+def generate_train_set(patients_to_train, train_name):
+    split(train_name + 'train.txt', patients_to_train)
 
 
-def generate_validation_set(patients_to_validate):
-    split('val.txt', patients_to_validate)
+def generate_validation_set(patients_to_validate, train_name):
+    split(train_name + 'val.txt', patients_to_validate)
 
 
-def generate_test_set(patients_to_test):
-    split('test.txt', patients_to_test)
+def generate_test_set(patients_to_test, train_name):
+    split(train_name + 'test.txt', patients_to_test)
 
 
-def get_files_split():
-    train_data = [line.rstrip('\n') for line in open('train.txt')]
-    val_data = [line.rstrip('\n') for line in open('val.txt')]
+def get_files_split(patient):
+    train_data = [line.rstrip('\n') for line in open(patient + 'train.txt')]
+    val_data = [line.rstrip('\n') for line in open(patient + 'val.txt')]
     return train_data, val_data
 
 
-def get_test_files():
-    return [line.rstrip('\n') for line in open('test.txt')]
+def get_test_files(patient):
+    return [line.rstrip('\n') for line in open(patient + 'test.txt')]
 
 
 def split(final_file, patients):
@@ -84,7 +84,7 @@ def split(final_file, patients):
     #         f.write("%s\n" % item)
 
 
-def generate_max_splits():
-    generate_train_set(PATIENTS_TO_TRAIN)
-    generate_validation_set(PATIENTS_TO_VALIDATE)
-    generate_test_set(PATIENTS_TO_TEST)
+def generate_max_splits(train=PATIENTS_TO_TRAIN, validate=PATIENTS_TO_VALIDATE, test=PATIENTS_TO_TEST, train_name=""):
+    generate_train_set(train, train_name)
+    generate_validation_set(validate, train_name)
+    generate_test_set(test, train_name)
