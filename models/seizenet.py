@@ -1,11 +1,11 @@
-import datetime
 from keras import Input, Sequential
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Reshape, AveragePooling2D, \
-    GlobalAveragePooling2D, Conv1D, DepthwiseConv2D, Activation, Lambda
-from keras.optimizers import Adam, SGD
+from keras.applications import ResNet50
+from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Reshape
+from keras.optimizers import Adam
 from keras.utils import plot_model
 
 from interface.constants import WINDOW_SIZE
+
 
 #
 # def get_lr_metric(optimizer):
@@ -25,10 +25,14 @@ class SeizeNet:
         #
         # self.reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
         #                                    patience=20, min_lr=0.00001)
-        self.model = self.build_model_functional()
+        self.model = self.build_resnet()
         print("STARTING CREATING MODEL:")
         print('best_model_{}.h5'.format(self.channels))
         # self.build_model()
+
+    def build_resnet(self):
+        return ResNet50(input_tensor=Input(shape=(self.channels, WINDOW_SIZE, 1)), weights=None, include_top=True,
+                        classes=2)
 
     def build_model(self):
         self.model = Sequential()
@@ -113,7 +117,7 @@ class SeizeNet:
 
     def fit_data(self, train_generator, test_generator):
         self.history = self.model.fit(train_generator, epochs=90,
-                                      validation_data=test_generator)
+                                      validation_data=test_generator, workers=10)
 
     def load_model(self, file):
         print("Loading model from file{}".format(file))
